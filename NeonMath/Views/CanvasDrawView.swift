@@ -973,6 +973,7 @@ public struct CanvasDrawView: View {
     private func drawLogic(context: GraphicsContext, size: CGSize, strokeStyle: StrokeStyle) {
         let p = Int(question.numericValues["p"] ?? 0.0)
         let q = Int(question.numericValues["q"] ?? 1.0)
+        let format = Int(question.numericValues["format"] ?? 0.0)
         
         let cx = size.width / 2.0
         let cy = size.height / 2.0
@@ -981,20 +982,40 @@ public struct CanvasDrawView: View {
         let hudPath = Path(roundedRect: hudRect, cornerRadius: 16)
         context.stroke(hudPath, with: .color(glowColor.opacity(0.3)), lineWidth: 1.5)
         
-        drawLabel(context: context, text: "INPUTS:", at: CGPoint(x: cx - 90, y: cy - 45))
-        drawLabel(context: context, text: "p = \(p)", at: CGPoint(x: cx - 90, y: cy - 15))
-        drawLabel(context: context, text: "q = \(q)", at: CGPoint(x: cx - 90, y: cy + 15))
+        drawLabel(context: context, text: "INPUTS:", at: CGPoint(x: cx - 75, y: cy - 45))
+        drawLabel(context: context, text: "p = \(p)", at: CGPoint(x: cx - 75, y: cy - 15))
+        drawLabel(context: context, text: "q = \(q)", at: CGPoint(x: cx - 75, y: cy + 15))
         
-        var gatePath = Path()
-        let gx = cx + 30
-        let gy = cy
-        gatePath.move(to: CGPoint(x: gx - 20, y: gy - 20))
-        gatePath.addQuadCurve(to: CGPoint(x: gx - 20, y: gy + 20), control: CGPoint(x: gx - 12, y: gy))
-        gatePath.addQuadCurve(to: CGPoint(x: gx + 20, y: gy), control: CGPoint(x: gx + 5, y: gy + 18))
-        gatePath.addQuadCurve(to: CGPoint(x: gx - 20, y: gy - 20), control: CGPoint(x: gx + 5, y: gy - 18))
-        strokeGlowPath(gatePath, in: context, style: strokeStyle, color: Color(hex: "#BD00FF"))
+        // Draw logic gate block
+        let bx = cx + 35
+        let by = cy
+        let blockRect = CGRect(x: bx - 35, y: by - 30, width: 70, height: 60)
+        let blockPath = Path(roundedRect: blockRect, cornerRadius: 8)
+        strokeGlowPath(blockPath, in: context, style: strokeStyle, color: Color(hex: "#BD00FF"))
         
-        drawLabel(context: context, text: "OUT: ?", at: CGPoint(x: gx + 45, y: gy))
+        // Logical expression text inside the block
+        let exprStr: String
+        switch format {
+        case 0: exprStr = "(p∨q)∧¬p"
+        case 1: exprStr = "(p∧q)∨¬q"
+        default: exprStr = "p⟹q"
+        }
+        drawLabel(context: context, text: exprStr, at: CGPoint(x: bx, y: by))
+        
+        // Connecting lines from inputs to block
+        var lines = Path()
+        lines.move(to: CGPoint(x: cx - 25, y: cy - 15))
+        lines.addLine(to: CGPoint(x: bx - 35, y: cy - 15))
+        
+        lines.move(to: CGPoint(x: cx - 25, y: cy + 15))
+        lines.addLine(to: CGPoint(x: bx - 35, y: cy + 15))
+        
+        // Output line
+        lines.move(to: CGPoint(x: bx + 35, y: cy))
+        lines.addLine(to: CGPoint(x: bx + 55, y: cy))
+        context.stroke(lines, with: .color(.white.opacity(0.4)), lineWidth: 1.5)
+        
+        drawLabel(context: context, text: "?", at: CGPoint(x: bx + 65, y: cy))
     }
     
     private func drawRatios(context: GraphicsContext, size: CGSize, strokeStyle: StrokeStyle) {

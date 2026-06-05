@@ -222,18 +222,16 @@ public struct Question: Identifiable, Codable, Equatable {
         }
     }
     
-    /// Generates a question dynamically adjusted to the player's current score (Dynamic Difficulty Adjustment), chosen language, and chosen curriculum track.
-    public static func generate(forScore score: Int, language: AppLanguage, track: CurriculumTrack) -> Question {
-        // Resolve difficulty based on active score progression
+    /// Generates a question dynamically adjusted to the player's current question index (difficulty progression), chosen language, and chosen curriculum track.
+    public static func generate(forQuestionIndex index: Int, language: AppLanguage, track: CurriculumTrack) -> Question {
+        // Resolve difficulty based on question index (0-19: easy, 20-39: medium, 40+: hard/expert)
         let difficulty: AppDifficulty
-        if score <= 500 {
+        if index < 20 {
             difficulty = .easy
-        } else if score <= 1200 {
+        } else if index < 40 {
             difficulty = .medium
-        } else if score <= 2000 {
-            difficulty = .hard
         } else {
-            difficulty = .expert
+            difficulty = index % 2 == 0 ? .hard : .expert
         }
         
         let selectedType: QuestionType
@@ -375,7 +373,7 @@ public struct Question: Identifiable, Codable, Equatable {
     }
     
     public static func generateRandom(language: AppLanguage, track: CurriculumTrack = .mat1) -> Question {
-        return generate(forScore: Int.random(in: 0...2500), language: language, track: track)
+        return generate(forQuestionIndex: Int.random(in: 0...50), language: language, track: track)
     }
     
     // MARK: - Procedural Generators (Geometry)
@@ -625,24 +623,36 @@ public struct Question: Identifiable, Codable, Equatable {
     }
     
     private static func generateGeometricIQPatternQuestion(difficulty: AppDifficulty, language: AppLanguage) -> Question {
-        let sides = 3
-        var vertexValues = [5, 4, 3, 0]
-        var centerValue = 36 // (5+4+3) * 3
+        let sides: Int
+        var vertexValues: [Int]
         
         switch difficulty {
         case .easy:
-            vertexValues = [3, 2, 4, 0]
-            centerValue = 27
+            sides = 3
+            let v0 = Int.random(in: 2...6)
+            let v1 = Int.random(in: 1...5)
+            let v2 = Int.random(in: 2...6)
+            vertexValues = [v0, v1, v2, 0]
         case .medium:
-            vertexValues = [6, 4, 5, 0]
-            centerValue = 45
+            sides = 3
+            let v0 = Int.random(in: 4...9)
+            let v1 = Int.random(in: 3...8)
+            let v2 = Int.random(in: 4...9)
+            vertexValues = [v0, v1, v2, 0]
         case .hard, .expert:
-            vertexValues = [8, 7, 5, 0]
-            centerValue = 60
+            sides = 4
+            let v0 = Int.random(in: 3...8)
+            let v1 = Int.random(in: 2...7)
+            let v2 = Int.random(in: 3...8)
+            let v3 = Int.random(in: 2...7)
+            vertexValues = [v0, v1, v2, v3]
         }
         
+        let sum = vertexValues.reduce(0, +)
+        let centerValue = sum * sides
+        
         let correctString = "\(centerValue)"
-        let distractors = ["\(centerValue - 5)", "\(centerValue + 10)", "\(vertexValues.reduce(0, +))"]
+        let distractors = ["\(centerValue - sides)", "\(centerValue + sum)", "\(sum)"].filter { $0 != correctString }
         let prompt = Localizer.string(forKey: "decode_vertex_pattern", lang: language)
         let options = shuffleOptions(correct: correctString, distractors: distractors)
         
@@ -656,7 +666,7 @@ public struct Question: Identifiable, Codable, Equatable {
                 "vertex0": Double(vertexValues[0]),
                 "vertex1": Double(vertexValues[1]),
                 "vertex2": Double(vertexValues[2]),
-                "vertex3": 0.0,
+                "vertex3": sides > 3 ? Double(vertexValues[3]) : 0.0,
                 "centerValue": Double(centerValue)
             ]
         )
@@ -1105,7 +1115,23 @@ public struct Question: Identifiable, Codable, Equatable {
         let distractors = ["\(correctVal + 2)", "\(correctVal - 3)", "\(correctVal == h ? k : h)"].filter { $0 != correctString }
         let options = shuffleOptions(correct: correctString, distractors: distractors)
         
-        let equationStr = "y = x² " + (b >= 0 ? "+ \(b)" : "- \(-b)") + "x " + (c >= 0 ? "+ \(c)" : "- \(-c)")
+        var bStr = ""
+        if b > 0 {
+            bStr = " + \(b)x"
+        } else if b < 0 {
+            bStr = " - \(-b)x"
+        }
+        
+        var cStr = ""
+        if c > 0 {
+            cStr = " + \(c)"
+        } else if c < 0 {
+            cStr = " - \(-c)"
+        } else if bStr.isEmpty {
+            cStr = " + 0"
+        }
+        
+        let equationStr = "y = x²" + bStr + cStr
         let prompt: String
         if language == .tr {
             let coordName = findY ? "y-koordinatını (k)" : "x-koordinatını (h)"

@@ -14,7 +14,7 @@ public final class GameViewModel {
     
     public private(set) var currentQuestion: Question = {
         let profile = UserProfile.load()
-        return Question.generate(forScore: 0, language: profile.language, track: profile.selectedTrack)
+        return Question.generate(forQuestionIndex: 0, language: profile.language, track: profile.selectedTrack)
     }()
     public private(set) var score: Int = 0
     public private(set) var timeRemaining: Double = 60.0
@@ -56,7 +56,7 @@ public final class GameViewModel {
         isCorrect = false
         
         // Generate initial question
-        currentQuestion = Question.generate(forScore: score, language: userProfile.language, track: userProfile.selectedTrack)
+        currentQuestion = Question.generate(forQuestionIndex: 0, language: userProfile.language, track: userProfile.selectedTrack)
         
         // Transition state
         gameState = .playing
@@ -98,7 +98,7 @@ public final class GameViewModel {
         userProfile = profile
         
         // Regenerate current question to apply language changes instantly
-        currentQuestion = Question.generate(forScore: score, language: newLang, track: profile.selectedTrack)
+        currentQuestion = Question.generate(forQuestionIndex: totalQuestionsCount, language: newLang, track: profile.selectedTrack)
     }
     
     /// Updates the player's curriculum track preference.
@@ -110,7 +110,7 @@ public final class GameViewModel {
         
         // Regenerate current question to apply the track change instantly in the lobby
         if gameState == .lobby {
-            currentQuestion = Question.generate(forScore: score, language: userProfile.language, track: newTrack)
+            currentQuestion = Question.generate(forQuestionIndex: totalQuestionsCount, language: userProfile.language, track: newTrack)
         }
     }
     
@@ -208,7 +208,7 @@ public final class GameViewModel {
         selectedAnswer = nil
         answerChecked = false
         isCorrect = false
-        currentQuestion = Question.generate(forScore: score, language: userProfile.language, track: userProfile.selectedTrack)
+        currentQuestion = Question.generate(forQuestionIndex: totalQuestionsCount, language: userProfile.language, track: userProfile.selectedTrack)
     }
     
     /// Ends the active game session, updating and saving user profile achievements.
