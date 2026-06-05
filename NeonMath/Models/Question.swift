@@ -290,11 +290,11 @@ public struct Question: Identifiable, Codable, Equatable {
     
     /// Generates a question dynamically adjusted to the player's current question index (difficulty progression), chosen language, and chosen curriculum track.
     public static func generate(forQuestionIndex index: Int, language: AppLanguage, track: CurriculumTrack) -> Question {
-        // Resolve difficulty based on question index (0-19: easy, 20-39: medium, 40+: hard/expert)
+        // Resolve difficulty based on question index (0-11: easy, 12-24: medium, 25+: hard/expert)
         let difficulty: AppDifficulty
-        if index < 20 {
+        if index < 12 {
             difficulty = .easy
-        } else if index < 40 {
+        } else if index < 25 {
             difficulty = .medium
         } else {
             difficulty = index % 2 == 0 ? .hard : .expert
@@ -305,37 +305,98 @@ public struct Question: Identifiable, Codable, Equatable {
         
         switch track {
         case .mat1:
-            let sub = Math1SubCategory.allCases.randomElement() ?? .basicNumbers
+            // Progressive selection based on index to start with very easy subjects
+            let sub: Math1SubCategory
+            if index < 4 {
+                // Only basic arithmetic / simple numbers
+                sub = .basicNumbers
+            } else if index < 8 {
+                // Introduce simple equations
+                sub = [.basicNumbers, .equationsInequalities].randomElement() ?? .basicNumbers
+            } else if index < 12 {
+                // Introduce simple problems & foundations
+                sub = [.basicNumbers, .equationsInequalities, .problems, .foundations].randomElement() ?? .basicNumbers
+            } else {
+                // All subjects
+                sub = Math1SubCategory.allCases.randomElement() ?? .basicNumbers
+            }
+            
             chosenSubCategory = .math1(sub)
             switch sub {
             case .basicNumbers:
-                selectedType = [.matrixGrid, .tytNumbers].randomElement() ?? .tytNumbers
+                if index < 3 {
+                    selectedType = .tytNumbers
+                } else {
+                    selectedType = [.matrixGrid, .tytNumbers].randomElement() ?? .tytNumbers
+                }
             case .equationsInequalities:
-                selectedType = [.ratios, .tytEquations].randomElement() ?? .tytEquations
+                if index < 6 {
+                    selectedType = .tytEquations
+                } else {
+                    selectedType = [.ratios, .tytEquations].randomElement() ?? .tytEquations
+                }
             case .problems:
                 selectedType = .tytProblems
             case .foundations:
-                selectedType = [.logic, .vennDiagrams, .tytFoundations].randomElement() ?? .tytFoundations
+                if index < 10 {
+                    selectedType = .tytFoundations
+                } else {
+                    selectedType = [.logic, .vennDiagrams, .tytFoundations].randomElement() ?? .tytFoundations
+                }
             case .countingProbability:
                 selectedType = .tytProbability
             }
         case .mat2:
-            let sub = Math2SubCategory.allCases.randomElement() ?? .advancedFunctions
+            // Progressive selection based on index to start with functions & quadratics
+            let sub: Math2SubCategory
+            if index < 4 {
+                sub = .advancedFunctions
+            } else if index < 8 {
+                sub = [.advancedFunctions, .quadraticsComplex].randomElement() ?? .advancedFunctions
+            } else if index < 12 {
+                sub = [.advancedFunctions, .quadraticsComplex, .logarithms].randomElement() ?? .advancedFunctions
+            } else {
+                sub = Math2SubCategory.allCases.randomElement() ?? .advancedFunctions
+            }
+            
             chosenSubCategory = .math2(sub)
             switch sub {
             case .advancedFunctions:
-                selectedType = [.functionGraph, .parabolaVertices, .aytFunctions].randomElement() ?? .aytFunctions
+                if index < 3 {
+                    selectedType = .aytFunctions
+                } else {
+                    selectedType = [.functionGraph, .parabolaVertices, .aytFunctions].randomElement() ?? .aytFunctions
+                }
             case .quadraticsComplex:
                 selectedType = .aytQuadratics
             case .trigonometry:
-                selectedType = [.unitCircle, .trigIdentity, .aytTrig].randomElement() ?? .aytTrig
+                if index < 14 {
+                    selectedType = .unitCircle
+                } else {
+                    selectedType = [.unitCircle, .trigIdentity, .aytTrig].randomElement() ?? .aytTrig
+                }
             case .logarithms:
-                selectedType = [.logarithmBasics, .aytLog].randomElement() ?? .aytLog
+                if index < 12 {
+                    selectedType = .logarithmBasics
+                } else {
+                    selectedType = [.logarithmBasics, .aytLog].randomElement() ?? .aytLog
+                }
             case .sequencesSeries:
                 selectedType = .aytSequences
             }
         case .geometry:
-            let sub = GeometrySubCategory.allCases.randomElement() ?? .linesAngles
+            // Progressive selection based on index to start with simple lines/angles and triangles
+            let sub: GeometrySubCategory
+            if index < 4 {
+                sub = .linesAngles
+            } else if index < 8 {
+                sub = [.linesAngles, .triangleAngles].randomElement() ?? .linesAngles
+            } else if index < 12 {
+                sub = [.linesAngles, .triangleAngles, .pythagoreanTriplets].randomElement() ?? .linesAngles
+            } else {
+                sub = GeometrySubCategory.allCases.randomElement() ?? .linesAngles
+            }
+            
             chosenSubCategory = .geometry(sub)
             switch sub {
             case .linesAngles:
@@ -350,47 +411,86 @@ public struct Question: Identifiable, Codable, Equatable {
                 selectedType = .transformations
             }
         case .mix:
-            // Weighted selection: 35% Math 1, 35% Math 2, 30% Geometry
             let rand = Double.random(in: 0...100)
-            if rand < 35.0 {
-                let sub = Math1SubCategory.allCases.randomElement() ?? .basicNumbers
-                chosenSubCategory = .math1(sub)
-                switch sub {
-                case .basicNumbers:
-                    selectedType = [.matrixGrid, .tytNumbers].randomElement() ?? .tytNumbers
-                case .equationsInequalities:
-                    selectedType = [.ratios, .tytEquations].randomElement() ?? .tytEquations
-                case .problems:
-                    selectedType = .tytProblems
-                case .foundations:
-                    selectedType = [.logic, .vennDiagrams, .tytFoundations].randomElement() ?? .tytFoundations
-                case .countingProbability:
-                    selectedType = .tytProbability
+            if index < 5 {
+                // Easiest mix: 80% Math 1, 20% Geometry
+                if rand < 80.0 {
+                    let sub = Math1SubCategory.basicNumbers
+                    chosenSubCategory = .math1(sub)
+                    selectedType = .tytNumbers
+                } else {
+                    let sub = GeometrySubCategory.linesAngles
+                    chosenSubCategory = .geometry(sub)
+                    selectedType = [.transversalParallel, .supplementaryLines].randomElement() ?? .transversalParallel
                 }
-            } else if rand < 70.0 {
-                let sub = Math2SubCategory.allCases.randomElement() ?? .advancedFunctions
-                chosenSubCategory = .math2(sub)
-                switch sub {
-                case .advancedFunctions:
-                    selectedType = [.functionGraph, .parabolaVertices, .aytFunctions].randomElement() ?? .aytFunctions
-                case .quadraticsComplex:
-                    selectedType = .aytQuadratics
-                case .trigonometry:
-                    selectedType = [.unitCircle, .trigIdentity, .aytTrig].randomElement() ?? .aytTrig
-                case .logarithms:
-                    selectedType = [.logarithmBasics, .aytLog].randomElement() ?? .aytLog
-                case .sequencesSeries:
-                    selectedType = .aytSequences
+            } else if index < 10 {
+                // Mild mix: 50% Math 1, 30% Geometry, 20% Math 2 (easy subjects only)
+                if rand < 50.0 {
+                    let sub = Math1SubCategory.allCases.filter { $0 != .countingProbability }.randomElement() ?? .basicNumbers
+                    chosenSubCategory = .math1(sub)
+                    switch sub {
+                    case .basicNumbers: selectedType = .tytNumbers
+                    case .equationsInequalities: selectedType = .tytEquations
+                    case .problems: selectedType = .tytProblems
+                    case .foundations: selectedType = .tytFoundations
+                    case .countingProbability: selectedType = .tytProbability
+                    }
+                } else if rand < 80.0 {
+                    let sub = GeometrySubCategory.allCases.filter { $0 != .circleTheorems && $0 != .transformations }.randomElement() ?? .linesAngles
+                    chosenSubCategory = .geometry(sub)
+                    switch sub {
+                    case .linesAngles: selectedType = [.transversalParallel, .supplementaryLines].randomElement() ?? .transversalParallel
+                    case .triangleAngles: selectedType = .triangleAngle
+                    case .pythagoreanTriplets: selectedType = .triangleTrig
+                    default: selectedType = .triangleAngle
+                    }
+                } else {
+                    let sub = Math2SubCategory.advancedFunctions
+                    chosenSubCategory = .math2(sub)
+                    selectedType = .aytFunctions
                 }
             } else {
-                let sub = GeometrySubCategory.allCases.randomElement() ?? .linesAngles
-                chosenSubCategory = .geometry(sub)
-                switch sub {
-                case .linesAngles: selectedType = [.transversalParallel, .supplementaryLines].randomElement() ?? .transversalParallel
-                case .triangleAngles: selectedType = .triangleAngle
-                case .pythagoreanTriplets: selectedType = .triangleTrig
-                case .circleTheorems: selectedType = [.inscribedCircleAngle, .circleTangent].randomElement() ?? .inscribedCircleAngle
-                case .transformations: selectedType = .transformations
+                // Standard mix: 35% Math 1, 35% Math 2, 30% Geometry
+                if rand < 35.0 {
+                    let sub = Math1SubCategory.allCases.randomElement() ?? .basicNumbers
+                    chosenSubCategory = .math1(sub)
+                    switch sub {
+                    case .basicNumbers:
+                        selectedType = [.matrixGrid, .tytNumbers].randomElement() ?? .tytNumbers
+                    case .equationsInequalities:
+                        selectedType = [.ratios, .tytEquations].randomElement() ?? .tytEquations
+                    case .problems:
+                        selectedType = .tytProblems
+                    case .foundations:
+                        selectedType = [.logic, .vennDiagrams, .tytFoundations].randomElement() ?? .tytFoundations
+                    case .countingProbability:
+                        selectedType = .tytProbability
+                    }
+                } else if rand < 70.0 {
+                    let sub = Math2SubCategory.allCases.randomElement() ?? .advancedFunctions
+                    chosenSubCategory = .math2(sub)
+                    switch sub {
+                    case .advancedFunctions:
+                        selectedType = [.functionGraph, .parabolaVertices, .aytFunctions].randomElement() ?? .aytFunctions
+                    case .quadraticsComplex:
+                        selectedType = .aytQuadratics
+                    case .trigonometry:
+                        selectedType = [.unitCircle, .trigIdentity, .aytTrig].randomElement() ?? .aytTrig
+                    case .logarithms:
+                        selectedType = [.logarithmBasics, .aytLog].randomElement() ?? .aytLog
+                    case .sequencesSeries:
+                        selectedType = .aytSequences
+                    }
+                } else {
+                    let sub = GeometrySubCategory.allCases.randomElement() ?? .linesAngles
+                    chosenSubCategory = .geometry(sub)
+                    switch sub {
+                    case .linesAngles: selectedType = [.transversalParallel, .supplementaryLines].randomElement() ?? .transversalParallel
+                    case .triangleAngles: selectedType = .triangleAngle
+                    case .pythagoreanTriplets: selectedType = .triangleTrig
+                    case .circleTheorems: selectedType = [.inscribedCircleAngle, .circleTangent].randomElement() ?? .inscribedCircleAngle
+                    case .transformations: selectedType = .transformations
+                    }
                 }
             }
         }
@@ -1091,9 +1191,25 @@ public struct Question: Identifiable, Codable, Equatable {
     // MARK: - Procedural Generators (New Sub-categories)
     
     private static func generateVennDiagramsQuestion(difficulty: AppDifficulty, language: AppLanguage) -> Question {
-        let a = Int.random(in: 10...30)
-        let b = Int.random(in: 12...35)
-        let intersection = Int.random(in: 3...min(a, b) - 2)
+        let a: Int
+        let b: Int
+        let intersection: Int
+        
+        switch difficulty {
+        case .easy:
+            a = Int.random(in: 4...8)
+            b = Int.random(in: 5...9)
+            intersection = Int.random(in: 1...3)
+        case .medium:
+            a = Int.random(in: 10...20)
+            b = Int.random(in: 12...25)
+            intersection = Int.random(in: 2...6)
+        case .hard, .expert:
+            a = Int.random(in: 15...35)
+            b = Int.random(in: 20...45)
+            intersection = Int.random(in: 4...10)
+        }
+        
         let union = a + b - intersection
         
         let correctString = "\(union)"
@@ -1121,21 +1237,54 @@ public struct Question: Identifiable, Codable, Equatable {
     private static func generateLogicQuestion(difficulty: AppDifficulty, language: AppLanguage) -> Question {
         let p = Int.random(in: 0...1)
         let q = Int.random(in: 0...1)
-        let format = Int.random(in: 0...2)
         
         let correctVal: Int
         let expressionStr: String
         
-        switch format {
-        case 0:
-            correctVal = ((p == 1 || q == 1) && p == 0) ? 1 : 0
-            expressionStr = "(p ∨ q) ∧ ¬p"
-        case 1:
-            correctVal = ((p == 1 && q == 1) || q == 0) ? 1 : 0
-            expressionStr = "(p ∧ q) ∨ ¬q"
-        default:
-            correctVal = (p == 1 && q == 0) ? 0 : 1
-            expressionStr = "p ⟹ q"
+        switch difficulty {
+        case .easy:
+            let op = Int.random(in: 0...2)
+            if op == 0 {
+                correctVal = (p == 1 && q == 1) ? 1 : 0
+                expressionStr = "p ∧ q"
+            } else if op == 1 {
+                correctVal = (p == 1 || q == 1) ? 1 : 0
+                expressionStr = "p ∨ q"
+            } else {
+                correctVal = p == 0 ? 1 : 0
+                expressionStr = "¬p"
+            }
+        case .medium:
+            let format = Int.random(in: 0...2)
+            switch format {
+            case 0:
+                correctVal = ((p == 1 || q == 1) && p == 0) ? 1 : 0
+                expressionStr = "(p ∨ q) ∧ ¬p"
+            case 1:
+                correctVal = ((p == 1 && q == 1) || q == 0) ? 1 : 0
+                expressionStr = "(p ∧ q) ∨ ¬q"
+            default:
+                correctVal = (p == 1 && q == 0) ? 0 : 1
+                expressionStr = "p ⟹ q"
+            }
+        case .hard, .expert:
+            let format = Int.random(in: 0...2)
+            switch format {
+            case 0:
+                let imp = (p == 1 && q == 0) ? 0 : 1
+                correctVal = (imp == 1 && p == 0) ? 1 : 0
+                expressionStr = "(p ⟹ q) ∧ ¬p"
+            case 1:
+                let andVal = (p == 1 && q == 1) ? 1 : 0
+                let notAnd = andVal == 0 ? 1 : 0
+                correctVal = (notAnd == p) ? 1 : 0
+                expressionStr = "¬(p ∧ q) ⟺ p"
+            default:
+                let left = (p == 1 || q == 0) ? 1 : 0
+                let right = (p == 1 && q == 1) ? 1 : 0
+                correctVal = (left == 1 && right == 0) ? 0 : 1
+                expressionStr = "(p ∨ ¬q) ⟹ (p ∧ q)"
+            }
         }
         
         let correctString = "\(correctVal)"
@@ -1154,16 +1303,31 @@ public struct Question: Identifiable, Codable, Equatable {
             numericValues: [
                 "p": Double(p),
                 "q": Double(q),
-                "format": Double(format),
                 "correct": Double(correctVal)
             ]
         )
     }
     
     private static func generateRatiosQuestion(difficulty: AppDifficulty, language: AppLanguage) -> Question {
-        let r1 = Int.random(in: 2...4)
-        let r2 = Int.random(in: 5...7)
-        let factor = Int.random(in: 5...12)
+        let r1: Int
+        let r2: Int
+        let factor: Int
+        
+        switch difficulty {
+        case .easy:
+            r1 = [1, 2].randomElement() ?? 1
+            r2 = [3, 4].randomElement() ?? 3
+            factor = Int.random(in: 2...5)
+        case .medium:
+            r1 = Int.random(in: 2...4)
+            r2 = Int.random(in: 5...7)
+            factor = Int.random(in: 4...8)
+        case .hard, .expert:
+            r1 = Int.random(in: 3...5)
+            r2 = Int.random(in: 6...9)
+            factor = Int.random(in: 8...15)
+        }
+        
         let total = (r1 + r2) * factor
         
         let findLarger = Bool.random()
@@ -1198,8 +1362,25 @@ public struct Question: Identifiable, Codable, Equatable {
     }
     
     private static func generateParabolaVerticesQuestion(difficulty: AppDifficulty, language: AppLanguage) -> Question {
-        let h = Int.random(in: -4...4)
-        let k = Int.random(in: -3...5)
+        let h: Int
+        let k: Int
+        
+        switch difficulty {
+        case .easy:
+            if Bool.random() {
+                h = 0
+                k = [Int.random(in: (-3)...(-1)), Int.random(in: 1...3)].randomElement() ?? 2
+            } else {
+                h = [Int.random(in: (-3)...(-1)), Int.random(in: 1...3)].randomElement() ?? 2
+                k = 0
+            }
+        case .medium:
+            h = Int.random(in: -2...2)
+            k = Int.random(in: -2...2)
+        case .hard, .expert:
+            h = Int.random(in: -5...5)
+            k = Int.random(in: -4...6)
+        }
         
         let b = -2 * h
         let c = h * h + k
@@ -1253,25 +1434,49 @@ public struct Question: Identifiable, Codable, Equatable {
     }
     
     private static func generateLogarithmBasicsQuestion(difficulty: AppDifficulty, language: AppLanguage) -> Question {
-        let base = [2, 3, 5].randomElement() ?? 2
-        let c = Int.random(in: 2...3)
+        let base: Int
+        let powerVal: Int
+        let x: Int
+        let prompt: String
+        let correctString: String
+        let distractors: [String]
         
-        let powerVal = Int(pow(Double(base), Double(c)))
-        let a = [1, 2].randomElement() ?? 1
+        switch difficulty {
+        case .easy:
+            base = [2, 3, 5, 10].randomElement() ?? 2
+            x = base == 10 ? [1, 2].randomElement()! : [2, 3, 4].randomElement()!
+            powerVal = Int(pow(Double(base), Double(x)))
+            correctString = "\(x)"
+            distractors = ["\(x + 1)", "\(x - 1)", "\(base)"].filter { $0 != correctString }
+            prompt = language == .tr ?
+                "log_\(base)(\(powerVal)) ifadesinin değerini bulun." :
+                "Find the value of the expression: log_\(base)(\(powerVal))"
+        case .medium:
+            base = [2, 3, 5].randomElement() ?? 2
+            x = [2, 3, 4].randomElement()!
+            powerVal = Int(pow(Double(base), Double(x)))
+            correctString = "\(powerVal)"
+            distractors = ["\(powerVal + base)", "\(powerVal - 1)", "\(base * x)"].filter { $0 != correctString }
+            prompt = language == .tr ?
+                "log_\(base)(x) = \(x) ise x değerini bulun." :
+                "If log_\(base)(x) = \(x), find the value of x."
+        case .hard, .expert:
+            base = [2, 3, 5].randomElement() ?? 2
+            let c = Int.random(in: 2...3)
+            powerVal = Int(pow(Double(base), Double(c)))
+            let a = [1, 2].randomElement() ?? 1
+            x = Int.random(in: 3...15)
+            let b = a * x - powerVal
+            correctString = "\(x)"
+            distractors = ["\(x + 2)", "\(x - 1)", "\(base + c)"].filter { $0 != correctString }
+            let argStr = (a == 1 ? "x" : "\(a)x") + (b >= 0 ? " - \(b)" : " + \(-b)")
+            let equationStr = "log_\(base)(\(argStr)) = \(c)"
+            prompt = language == .tr ?
+                "Logaritmik denklemdeki bilinmeyen x değerini çözün: \(equationStr)" :
+                "Solve for x in the logarithmic equation: \(equationStr)"
+        }
         
-        let x = Int.random(in: 3...15)
-        let b = a * x - powerVal
-        
-        let correctString = "\(x)"
-        let distractors = ["\(x + 2)", "\(x - 1)", "\(base + c)"].filter { $0 != correctString }
         let options = shuffleOptions(correct: correctString, distractors: distractors)
-        
-        let argStr = (a == 1 ? "x" : "\(a)x") + (b >= 0 ? " - \(b)" : " + \(-b)")
-        let equationStr = "log_\(base)(\(argStr)) = \(c)"
-        
-        let prompt = language == .tr ?
-            "Logaritmik denklemdeki bilinmeyen x değerini çözün: \(equationStr)" :
-            "Solve for x in the logarithmic equation: \(equationStr)"
         
         return Question(
             type: .logarithmBasics,
@@ -1280,58 +1485,77 @@ public struct Question: Identifiable, Codable, Equatable {
             correctAnswer: correctString,
             numericValues: [
                 "base": Double(base),
-                "c": Double(c),
-                "a": Double(a),
-                "b": Double(b),
-                "x": Double(x)
+                "correct": Double(x)
             ]
         )
     }
     
     private static func generateTransformationsQuestion(difficulty: AppDifficulty, language: AppLanguage) -> Question {
-        let px = Int.random(in: -5...5)
-        let py = Int.random(in: -5...5)
+        let px = Int.random(in: -4...4)
+        let py = Int.random(in: -4...4)
         
-        let reflectionType = Int.random(in: 0...2)
-        let dx = Int.random(in: -3...3)
-        let dy = Int.random(in: -3...3)
+        let fx: Int
+        let fy: Int
+        let prompt: String
         
-        let rx: Int
-        let ry: Int
-        let reflectStr: String
-        let reflectStrTr: String
-        
-        switch reflectionType {
-        case 0:
-            rx = px
-            ry = -py
-            reflectStr = "reflected across the x-axis"
-            reflectStrTr = "x-eksenine göre yansıtılıyor"
-        case 1:
-            rx = -px
-            ry = py
-            reflectStr = "reflected across the y-axis"
-            reflectStrTr = "y-eksenine göre yansıtılıyor"
-        default:
-            rx = -px
-            ry = -py
-            reflectStr = "reflected across the origin"
-            reflectStrTr = "orijine göre yansıtılıyor"
+        switch difficulty {
+        case .easy:
+            if Bool.random() {
+                let dx = [Int.random(in: (-3)...(-1)), Int.random(in: 1...3)].randomElement() ?? 2
+                let dy = [Int.random(in: (-3)...(-1)), Int.random(in: 1...3)].randomElement() ?? 2
+                fx = px + dx
+                fy = py + dy
+                prompt = language == .tr ?
+                    "P(\(px), \(py)) noktası x-ekseni boyunca \(dx >= 0 ? "+\(dx)" : "\(dx)") ve y-ekseni boyunca \(dy >= 0 ? "+\(dy)" : "\(dy)") öteleniyor. Yeni koordinatları bulun." :
+                    "Point P(\(px), \(py)) is translated by \(dx >= 0 ? "+\(dx)" : "\(dx)") along the x-axis and \(dy >= 0 ? "+\(dy)" : "\(dy)") along the y-axis. Find the new coordinates."
+            } else {
+                let choice = Int.random(in: 0...1)
+                if choice == 0 {
+                    fx = px
+                    fy = -py
+                    prompt = language == .tr ?
+                        "P(\(px), \(py)) noktasının x-eksenine göre yansımasını bulun." :
+                        "Find the reflection of point P(\(px), \(py)) across the x-axis."
+                } else {
+                    fx = -px
+                    fy = py
+                    prompt = language == .tr ?
+                        "P(\(px), \(py)) noktasının y-eksenine göre yansımasını bulun." :
+                        "Find the reflection of point P(\(px), \(py)) across the y-axis."
+                }
+            }
+        case .medium:
+            let reflectionType = Int.random(in: 0...1)
+            let dx = Int.random(in: -2...2)
+            let dy = Int.random(in: -2...2)
+            let rx = reflectionType == 0 ? px : -px
+            let ry = reflectionType == 0 ? -py : py
+            let reflectStr = reflectionType == 0 ? "reflected across the x-axis" : "reflected across the y-axis"
+            let reflectStrTr = reflectionType == 0 ? "x-eksenine göre yansıtılıyor" : "y-eksenine göre yansıtılıyor"
+            fx = rx + dx
+            fy = ry + dy
+            let translateStr = "translated by (\(dx >= 0 ? "+\(dx)" : "\(dx)"), \(dy >= 0 ? "+\(dy)" : "\(dy)")"
+            let translateStrTr = "(\(dx >= 0 ? "+\(dx)" : "\(dx)"), \(dy >= 0 ? "+\(dy)" : "\(dy)") öteleniyor"
+            prompt = language == .tr ?
+                "P(\(px), \(py)) noktası \(reflectStrTr) ve ardından \(translateStrTr). Son koordinatları bulun." :
+                "Point P(\(px), \(py)) is \(reflectStr) and then \(translateStr). Find its final coordinates."
+        case .hard, .expert:
+            let dx = Int.random(in: -3...3)
+            let dy = Int.random(in: -3...3)
+            let rx = -px
+            let ry = -py
+            fx = rx + dx
+            fy = ry + dy
+            let translateStr = "translated by (\(dx >= 0 ? "+\(dx)" : "\(dx)"), \(dy >= 0 ? "+\(dy)" : "\(dy)")"
+            let translateStrTr = "(\(dx >= 0 ? "+\(dx)" : "\(dx)"), \(dy >= 0 ? "+\(dy)" : "\(dy)") öteleniyor"
+            prompt = language == .tr ?
+                "P(\(px), \(py)) noktası orijine göre yansıtılıyor ve ardından \(translateStrTr). Son koordinatları bulun." :
+                "Point P(\(px), \(py)) is reflected across the origin and then \(translateStr). Find its final coordinates."
         }
         
-        let fx = rx + dx
-        let fy = ry + dy
-        
         let correctString = "(\(fx), \(fy))"
-        let distractors = ["(\(-fx), \(fy))", "(\(fx), \(-fy))", "(\(px + dx), \(py + dy))"].filter { $0 != correctString }
+        let distractors = ["(\(-fx), \(fy))", "(\(fx), \(-fy))", "(\(px), \(py))"].filter { $0 != correctString }
         let options = shuffleOptions(correct: correctString, distractors: distractors)
-        
-        let translateStr = "translated by (\(dx >= 0 ? "+\(dx)" : "\(dx)"), \(dy >= 0 ? "+\(dy)" : "\(dy)")"
-        let translateStrTr = "(\(dx >= 0 ? "+\(dx)" : "\(dx)"), \(dy >= 0 ? "+\(dy)" : "\(dy)") öteleniyor"
-        
-        let prompt = language == .tr ?
-            "P(\(px), \(py)) noktası \(reflectStrTr) ve ardından \(translateStrTr). Son koordinatları bulun." :
-            "Point P(\(px), \(py)) is \(reflectStr) and then \(translateStr). Find its final coordinates."
         
         return Question(
             type: .transformations,
@@ -1341,9 +1565,6 @@ public struct Question: Identifiable, Codable, Equatable {
             numericValues: [
                 "px": Double(px),
                 "py": Double(py),
-                "reflectionType": Double(reflectionType),
-                "dx": Double(dx),
-                "dy": Double(dy),
                 "fx": Double(fx),
                 "fy": Double(fy)
             ]
@@ -1354,7 +1575,16 @@ public struct Question: Identifiable, Codable, Equatable {
     // MARK: - TYT Math 1 Curriculum Generators
     
     private static func generateTytNumbersQuestion(difficulty: AppDifficulty, language: AppLanguage) -> Question {
-        let subTopic = Int.random(in: 0...5)
+        let subTopic: Int
+        switch difficulty {
+        case .easy:
+            subTopic = Int.random(in: 0...2)
+        case .medium:
+            subTopic = Int.random(in: 0...3)
+        case .hard, .expert:
+            subTopic = Int.random(in: 0...4)
+        }
+        
         var prompt = ""
         var correctAnswerVal = ""
         var distractors: [String] = []
@@ -1362,8 +1592,15 @@ public struct Question: Identifiable, Codable, Equatable {
         
         switch subTopic {
         case 0:
-            // Temel Kavramlar: max product of x + y = A
-            let sumVal = Int.random(in: 5...12) * 2 // Always even
+            let sumVal: Int
+            switch difficulty {
+            case .easy:
+                sumVal = 6
+            case .medium:
+                sumVal = 10
+            case .hard, .expert:
+                sumVal = Int.random(in: 6...12) * 2
+            }
             let correct = (sumVal / 2) * (sumVal / 2)
             correctAnswerVal = "\(correct)"
             distractors = ["\(correct - 4)", "\(correct + 5)", "\(sumVal * 2)"]
@@ -1372,19 +1609,54 @@ public struct Question: Identifiable, Codable, Equatable {
                 "x and y are positive integers. If x + y = \(sumVal), find the maximum value of x · y."
             numeric = ["sum": Double(sumVal), "correct": Double(correct), "sub": 0.0]
         case 1:
-            // Sayı Basamakları: AB - BA = D -> A - B
-            let diff = Int.random(in: 2...7)
-            let diffVal = diff * 9
-            correctAnswerVal = "\(diff)"
-            distractors = ["\(diff + 1)", "\(diff - 1)", "9"]
+            let n: Int
+            switch difficulty {
+            case .easy:
+                n = [3, 4, 5].randomElement() ?? 4
+            case .medium:
+                n = [6, 7, 8].randomElement() ?? 7
+            case .hard, .expert:
+                n = Int.random(in: 9...13)
+            }
+            correctAnswerVal = "\(n)"
+            distractors = ["\(n - 1)", "\(n + 1)", "1"]
             prompt = language == .tr ?
-                "AB ve BA iki basamaklı sayılardır. AB - BA = \(diffVal) olduğuna göre, A - B farkını bulun." :
-                "AB and BA are two-digit numbers. If AB - BA = \(diffVal), find the difference A - B."
-            numeric = ["diffVal": Double(diffVal), "correct": Double(diff), "sub": 1.0]
+                "\(n)! / \((n - 1))! işleminin sonucunu bulun." :
+                "Find the result of the expression: \(n)! / \((n - 1))!"
+            numeric = ["n": Double(n), "correct": Double(n), "sub": 3.0]
         case 2:
-            // Bölünebilme: 5A3 divisible by 9
-            let d1 = Int.random(in: 2...7)
-            let d2 = Int.random(in: 1...5)
+            if difficulty == .easy {
+                correctAnswerVal = "5"
+                distractors = ["0", "2", "3"]
+                prompt = language == .tr ?
+                    "İki basamaklı 2A sayısı 5 ile tam bölünebildiğine göre, A'nın sıfırdan farklı değerini bulun." :
+                    "If the two-digit number 2A is divisible by 5, find the non-zero value of A."
+                numeric = ["d1": 2.0, "d2": 5.0, "correct": 5.0, "sub": 2.0]
+            } else {
+                let diff: Int
+                if difficulty == .medium {
+                    diff = Int.random(in: 2...4)
+                } else {
+                    diff = Int.random(in: 5...7)
+                }
+                let diffVal = diff * 9
+                correctAnswerVal = "\(diff)"
+                distractors = ["\(diff + 1)", "\(diff - 1)", "9"]
+                prompt = language == .tr ?
+                    "AB ve BA iki basamaklı sayılardır. AB - BA = \(diffVal) olduğuna göre, A - B farkını bulun." :
+                    "AB and BA are two-digit numbers. If AB - BA = \(diffVal), find the difference A - B."
+                numeric = ["diffVal": Double(diffVal), "correct": Double(diff), "sub": 1.0]
+            }
+        case 3:
+            let d1: Int
+            let d2: Int
+            if difficulty == .medium {
+                d1 = 3
+                d2 = 2
+            } else {
+                d1 = Int.random(in: 2...7)
+                d2 = Int.random(in: 1...5)
+            }
             let sumDigits = d1 + d2
             let correctDigit = sumDigits <= 9 ? (9 - sumDigits) : (18 - sumDigits)
             correctAnswerVal = "\(correctDigit)"
@@ -1394,17 +1666,7 @@ public struct Question: Identifiable, Codable, Equatable {
                 "\(numStr) sayısı 9 ile tam bölünebildiğine göre, A rakamını bulun." :
                 "If the number \(numStr) is divisible by 9, find the digit A."
             numeric = ["d1": Double(d1), "d2": Double(d2), "correct": Double(correctDigit), "sub": 2.0]
-        case 3:
-            // Asal Sayılar / Faktöriyel: N! / (N-1)!
-            let n = Int.random(in: 5...12)
-            correctAnswerVal = "\(n)"
-            distractors = ["\(n - 1)", "\(n + 1)", "1"]
-            prompt = language == .tr ?
-                "\(n)! / \((n - 1))! işleminin sonucunu bulun." :
-                "Find the result of the expression: \(n)! / \((n - 1))!"
-            numeric = ["n": Double(n), "correct": Double(n), "sub": 3.0]
-        case 4:
-            // EBOB-EKOK: a = A, b = B. EBOB(a,b)=G, EKOK(a,b)=L
+        default:
             let g = [4, 6, 8].randomElement() ?? 6
             let k1 = 2
             let k2 = 3
@@ -1417,17 +1679,6 @@ public struct Question: Identifiable, Codable, Equatable {
                 "EBOB(a, b) = \(g) ve EKOK(a, b) = \(ekok) olarak verilmiştir. a = \(a) olduğuna göre, b değerini bulun." :
                 "Given EBOB(a, b) = \(g) and EKOK(a, b) = \(ekok). If a = \(a), find the value of b."
             numeric = ["g": Double(g), "ekok": Double(ekok), "a": Double(a), "correct": Double(b), "sub": 4.0]
-        default:
-            // Rasyonel: (1/A + 1/B) * (A*B) = B + A
-            let a = Int.random(in: 2...4)
-            let b = Int.random(in: 3...5)
-            let correct = b + a
-            correctAnswerVal = "\(correct)"
-            distractors = ["\(correct + 2)", "\(correct - 1)", "\(a * b)"]
-            prompt = language == .tr ?
-                "(1/\(a) + 1/\(b)) · \(a * b) işleminin sonucunu bulun." :
-                "Find the result of the expression: (1/\(a) + 1/\(b)) · \(a * b)"
-            numeric = ["a": Double(a), "b": Double(b), "correct": Double(correct), "sub": 5.0]
         }
         
         return Question(
@@ -1440,7 +1691,16 @@ public struct Question: Identifiable, Codable, Equatable {
     }
     
     private static func generateTytEquationsQuestion(difficulty: AppDifficulty, language: AppLanguage) -> Question {
-        let subTopic = Int.random(in: 0...4)
+        let subTopic: Int
+        switch difficulty {
+        case .easy:
+            subTopic = Int.random(in: 0...2)
+        case .medium:
+            subTopic = Int.random(in: 0...3)
+        case .hard, .expert:
+            subTopic = Int.random(in: 0...4)
+        }
+        
         var prompt = ""
         var correctAnswerVal = ""
         var distractors: [String] = []
@@ -1448,21 +1708,73 @@ public struct Question: Identifiable, Codable, Equatable {
         
         switch subTopic {
         case 0:
-            // Birinci Dereceden Denklemler: Ax - B = Cx + D
-            let x = Int.random(in: 2...6)
-            let c = Int.random(in: 1...4)
-            let k = Int.random(in: 1...3)
-            let a = c + k
-            let b = Int.random(in: 1...5)
-            let d = k * x - b
-            correctAnswerVal = "\(x)"
-            distractors = ["\(x + 1)", "\(x - 2)", "\(a + c)"]
-            prompt = language == .tr ?
-                "Bilinmeyen x değerini çözün: \(a)x - \(b) = \(c)x + \(d)" :
-                "Solve for x: \(a)x - \(b) = \(c)x + \(d)"
-            numeric = ["a": Double(a), "b": Double(b), "c": Double(c), "d": Double(d), "correct": Double(x), "sub": 0.0]
+            if difficulty == .easy {
+                let x = Int.random(in: 3...7)
+                let b = Int.random(in: 2...6)
+                let sumVal = x + b
+                correctAnswerVal = "\(x)"
+                distractors = ["\(x + 1)", "\(x - 2)", "\(sumVal)"]
+                prompt = language == .tr ?
+                    "Denklemi çözerek x değerini bulun: x + \(b) = \(sumVal)" :
+                    "Solve for x in the equation: x + \(b) = \(sumVal)"
+                numeric = ["a": 1.0, "b": Double(b), "c": 0.0, "d": Double(sumVal), "correct": Double(x), "sub": 0.0]
+            } else {
+                let x = Int.random(in: 2...6)
+                let c = Int.random(in: 1...4)
+                let k = Int.random(in: 1...3)
+                let a = c + k
+                let b = Int.random(in: 1...5)
+                let d = k * x - b
+                correctAnswerVal = "\(x)"
+                distractors = ["\(x + 1)", "\(x - 2)", "\(a + c)"]
+                prompt = language == .tr ?
+                    "Bilinmeyen x değerini çözün: \(a)x - \(b) = \(c)x + \(d)" :
+                    "Solve for x: \(a)x - \(b) = \(c)x + \(d)"
+                numeric = ["a": Double(a), "b": Double(b), "c": Double(c), "d": Double(d), "correct": Double(x), "sub": 0.0]
+            }
         case 1:
-            // Basit Eşitsizlikler: A < 2x - 1 <= B
+            if difficulty == .easy {
+                let x = Int.random(in: 4...9)
+                correctAnswerVal = "\(x)"
+                distractors = ["-\(x)", "0", "\(x + 2)"]
+                prompt = language == .tr ?
+                    "|x| = \(x) denklemini sağlayan en büyük x değerini bulun." :
+                    "Find the largest value of x that satisfies the equation: |x| = \(x)"
+                numeric = ["a": 0.0, "b": Double(x), "correct": Double(x), "sub": 2.0]
+            } else {
+                let a = Int.random(in: 2...8)
+                let b = Int.random(in: 3...7)
+                let correct = a + b
+                correctAnswerVal = "\(correct)"
+                distractors = ["\(a - b)", "\(correct + 2)", "\(a * b)"]
+                prompt = language == .tr ?
+                    "|x - \(a)| = \(b) denklemini sağlayan en büyük x değerini bulun." :
+                    "Find the largest value of x that satisfies the equation: |x - \(a)| = \(b)."
+                numeric = ["a": Double(a), "b": Double(b), "correct": Double(correct), "sub": 2.0]
+            }
+        case 2:
+            if difficulty == .easy {
+                let b = 2
+                let x = Int.random(in: 2...4)
+                let p = Int(pow(Double(b), Double(x)))
+                correctAnswerVal = "\(x)"
+                distractors = ["\(x - 1)", "\(x + 1)", "\(b)"]
+                prompt = language == .tr ?
+                    "Denklemdeki x değerini bulun: \(b)^x = \(p)" :
+                    "Find the value of x in the equation: \(b)^x = \(p)"
+                numeric = ["a": Double(b), "b": Double(p), "correct": Double(x), "sub": 3.0]
+            } else {
+                let b = [2, 3].randomElement() ?? 2
+                let x = Int.random(in: 3...5)
+                let p = Int(pow(Double(b), Double(x)))
+                correctAnswerVal = "\(x)"
+                distractors = ["\(x - 1)", "\(x + 1)", "\(b)"]
+                prompt = language == .tr ?
+                    "Denklemdeki x değerini bulun: \(b)^x = \(p)" :
+                    "Find the value of x in the equation: \(b)^x = \(p)"
+                numeric = ["a": Double(b), "b": Double(p), "correct": Double(x), "sub": 3.0]
+            }
+        case 3:
             let xMin = Int.random(in: 1...4)
             let xMax = xMin + Int.random(in: 2...4)
             let a = 2 * xMin - 1
@@ -1478,42 +1790,16 @@ public struct Question: Identifiable, Codable, Equatable {
                 "\(a) < 2x - 1 ≤ \(b) eşitsizliğini sağlayan x aralığını bulun." :
                 "Find the range of x that satisfies the inequality: \(a) < 2x - 1 <= \(b)."
             numeric = ["a": Double(a), "b": Double(b), "xMin": Double(xMin), "xMax": Double(xMax), "sub": 1.0]
-        case 2:
-            // Mutlak Değer: |x - A| = B -> Find max x
-            let a = Int.random(in: 2...8)
-            let b = Int.random(in: 3...7)
-            let correct = a + b
-            correctAnswerVal = "\(correct)"
-            distractors = ["\(a - b)", "\(correct + 2)", "\(a * b)"]
-            prompt = language == .tr ?
-                "|x - \(a)| = \(b) denklemini sağlayan en büyük x değerini bulun." :
-                "Find the largest value of x that satisfies the equation: |x - \(a)| = \(b)."
-            numeric = ["a": Double(a), "b": Double(b), "correct": Double(correct), "sub": 2.0]
-        case 3:
-            // Üslü Sayılar: B^x = P
-            let b = [2, 3].randomElement() ?? 2
-            let x = Int.random(in: 3...5)
-            let p = Int(pow(Double(b), Double(x)))
-            correctAnswerVal = "\(x)"
-            distractors = ["\(x - 1)", "\(x + 1)", "\(b)"]
-            prompt = language == .tr ?
-                "Denklemdeki x değerini bulun: \(b)^x = \(p)" :
-                "Solve for x in the equation: \(b)^x = \(p)"
-            numeric = ["b": Double(b), "p": Double(p), "correct": Double(x), "sub": 3.0]
         default:
-            // Köklü Sayılar: sqrt(a1^2 * C) + sqrt(a2^2 * C) = K * sqrt(C)
-            let c = [2, 3, 5].randomElement() ?? 3
-            let a1 = Int.random(in: 2...4)
-            let a2 = Int.random(in: 2...3)
-            let t1 = a1 * a1 * c
-            let t2 = a2 * a2 * c
-            let correctK = a1 + a2
-            correctAnswerVal = "\(correctK)"
-            distractors = ["\(correctK - 1)", "\(correctK + 2)", "\(c)"]
+            let a = Int.random(in: 1...5)
+            let b = Int.random(in: 3...6)
+            let correct = b * b + a
+            correctAnswerVal = "\(correct)"
+            distractors = ["\(b * b - a)", "\(b + a)", "\(correct + 5)"]
             prompt = language == .tr ?
-                "K değerini bulun: √\(t1) + √\(t2) = K√\(c)" :
-                "Find the value of K: √\(t1) + √\(t2) = K√\(c)"
-            numeric = ["t1": Double(t1), "t2": Double(t2), "c": Double(c), "correct": Double(correctK), "sub": 4.0]
+                "√(x - \(a)) = \(b) denklemini sağlayan x değerini bulun." :
+                "Find the value of x that satisfies the equation: √(x - \(a)) = \(b)."
+            numeric = ["a": Double(a), "b": Double(b), "correct": Double(correct), "sub": 4.0]
         }
         
         return Question(
@@ -1526,7 +1812,16 @@ public struct Question: Identifiable, Codable, Equatable {
     }
     
     private static func generateTytProblemsQuestion(difficulty: AppDifficulty, language: AppLanguage) -> Question {
-        let subTopic = Int.random(in: 0...4)
+        let subTopic: Int
+        switch difficulty {
+        case .easy:
+            subTopic = Int.random(in: 0...2)
+        case .medium:
+            subTopic = Int.random(in: 0...3)
+        case .hard, .expert:
+            subTopic = Int.random(in: 0...4)
+        }
+        
         var prompt = ""
         var correctAnswerVal = ""
         var distractors: [String] = []
@@ -1534,17 +1829,72 @@ public struct Question: Identifiable, Codable, Equatable {
         
         switch subTopic {
         case 0:
-            // Sayı/Kesir: x/2 + 3x = T -> x
-            let x = Int.random(in: 2...8) * 2 // Always even
-            let t = x / 2 + 3 * x
-            correctAnswerVal = "\(x)"
-            distractors = ["\(x + 2)", "\(x - 2)", "\(t)"]
-            prompt = language == .tr ?
-                "Bir sayının yarısı ile 3 katının toplamı \(t) olduğuna göre, bu sayıyı bulun." :
-                "If the sum of half a number and 3 times the number is \(t), find the number."
-            numeric = ["t": Double(t), "correct": Double(x), "sub": 0.0]
+            if difficulty == .easy {
+                let mult = Int.random(in: 3...5)
+                let base = Int.random(in: 4...8)
+                let result = base * mult
+                correctAnswerVal = "\(result)"
+                distractors = ["\(result - mult)", "\(result + mult)", "\(base + mult)"]
+                prompt = language == .tr ?
+                    "Üçte biri (1/3) \(base) olan sayıyı bulun." :
+                    "Find the number whose one-third (1/3) is \(base)."
+                numeric = ["t": Double(base), "correct": Double(result), "sub": 0.0]
+            } else {
+                let x = Int.random(in: 2...8) * 2
+                let t = x / 2 + 3 * x
+                correctAnswerVal = "\(x)"
+                distractors = ["\(x + 2)", "\(x - 2)", "\(t)"]
+                prompt = language == .tr ?
+                    "Bir sayının yarısı ile 3 katının toplamı \(t) olduğuna göre, bu sayıyı bulun." :
+                    "If the sum of half a number and 3 times the number is \(t), find the number."
+                numeric = ["t": Double(t), "correct": Double(x), "sub": 0.0]
+            }
         case 1:
-            // Yaş: Father A, Son B. x years later father is 2x son.
+            if difficulty == .easy {
+                let speed = [50, 60, 80].randomElement() ?? 60
+                let t = [2, 3].randomElement() ?? 2
+                let dist = speed * t
+                correctAnswerVal = "\(dist)"
+                distractors = ["\(dist - speed)", "\(dist + speed)", "\(speed + t)"]
+                prompt = language == .tr ?
+                    "Saatte \(speed) km hızla giden bir araç 2 saatte kaç km yol alır?" :
+                    "How many km does a car traveling at \(speed) km/h travel in 2 hours?"
+                numeric = ["d": Double(dist), "v1": Double(speed), "v2": 0.0, "correct": Double(dist), "sub": 3.0]
+            } else {
+                let v1 = 60
+                let v2 = 80
+                let t = Int.random(in: 2...4)
+                let d = (v1 + v2) * t
+                correctAnswerVal = "\(t)"
+                distractors = ["\(t + 1)", "\(t - 1)", "5"]
+                prompt = language == .tr ?
+                    "Aralarında \(d) km olan iki araç, sırasıyla \(v1) km/sa ve \(v2) km/sa hızlarla birbirine doğru hareket ediyor. Kaç saat sonra karşılaşırlar?" :
+                    "Two cars, \(d) km apart, move towards each other at \(v1) km/h and \(v2) km/h respectively. In how many hours will they meet?"
+                numeric = ["d": Double(d), "v1": Double(v1), "v2": Double(v2), "correct": Double(t), "sub": 3.0]
+            }
+        case 2:
+            if difficulty == .easy {
+                let total = [100, 200, 300].randomElement() ?? 200
+                let p = [10, 20, 30].randomElement() ?? 20
+                let val = (total * p) / 100
+                correctAnswerVal = "\(val)"
+                distractors = ["\(val + 5)", "\(val - 5)", "\(p)"]
+                prompt = language == .tr ?
+                    "\(total) sayısının %\(p)'si kaçtır?" :
+                    "What is \(p)% of \(total)?"
+                numeric = ["c": Double(total), "p": Double(p), "correct": Double(val), "sub": 4.0]
+            } else {
+                let c = [100, 200, 300].randomElement() ?? 200
+                let p = [10, 20, 25, 30].randomElement() ?? 20
+                let correctS = c + (c * p) / 100
+                correctAnswerVal = "\(correctS)"
+                distractors = ["\(correctS - 15)", "\(correctS + 20)", "\(c)"]
+                prompt = language == .tr ?
+                    "Maliyet fiyatı \(c) TL olan bir ürün %\(p) kârla satılırsa satış fiyatı kaç TL olur?" :
+                    "If a product costing \(c) TL is sold at a \(p)% profit, what is the selling price in TL?"
+                numeric = ["c": Double(c), "p": Double(p), "correct": Double(correctS), "sub": 4.0]
+            }
+        case 3:
             let sonAge = Int.random(in: 10...18)
             let years = Int.random(in: 4...12)
             let fatherAge = 2 * (sonAge + years) - years
@@ -1554,39 +1904,14 @@ public struct Question: Identifiable, Codable, Equatable {
                 "Bir baba \(fatherAge) yaşında, oğlu ise \(sonAge) yaşındadır. Kaç yıl sonra babanın yaşı oğlunun yaşının 2 katı olur?" :
                 "A father is \(fatherAge) years old and his son is \(sonAge) years old. In how many years will the father's age be 2 times the son's age?"
             numeric = ["fatherAge": Double(fatherAge), "sonAge": Double(sonAge), "correct": Double(years), "sub": 1.0]
-        case 2:
-            // İşçi: Ali A days, Veli B days. Together.
-            let pairs = [(6, 12, 4), (10, 15, 6), (12, 24, 8), (8, 24, 6)]
-            let pair = pairs.randomElement() ?? pairs[0]
+        default:
+            let pair = [(6, 12, 4), (10, 15, 6), (12, 24, 8), (8, 24, 6)].randomElement() ?? (6, 12, 4)
             correctAnswerVal = "\(pair.2)"
             distractors = ["\(pair.2 + 2)", "\(pair.2 - 1)", "\(pair.0)"]
             prompt = language == .tr ?
                 "Ali bir işi tek başına \(pair.0) günde, Veli ise \(pair.1) günde bitiriyor. İkisi birlikte bu işi kaç günde bitirir?" :
                 "Ali can complete a job alone in \(pair.0) days, and Veli in \(pair.1) days. How many days will it take if they work together?"
             numeric = ["a": Double(pair.0), "b": Double(pair.1), "correct": Double(pair.2), "sub": 2.0]
-        case 3:
-            // Hız: Two cars, distance D, speed V1, V2. Time to meet t.
-            let v1 = 60
-            let v2 = 80
-            let t = Int.random(in: 2...4)
-            let d = (v1 + v2) * t
-            correctAnswerVal = "\(t)"
-            distractors = ["\(t + 1)", "\(t - 1)", "5"]
-            prompt = language == .tr ?
-                "Aralarında \(d) km olan iki araç, sırasıyla \(v1) km/sa ve \(v2) km/sa hızlarla birbirine doğru hareket ediyor. Kaç saat sonra karşılaşırlar?" :
-                "Two cars, \(d) km apart, move towards each other at \(v1) km/h and \(v2) km/h respectively. In how many hours will they meet?"
-            numeric = ["d": Double(d), "v1": Double(v1), "v2": Double(v2), "correct": Double(t), "sub": 3.0]
-        default:
-            // Yüzde/Kar-Zarar: Cost C, profit P -> Selling price S
-            let c = [100, 200, 300].randomElement() ?? 200
-            let p = [10, 20, 25, 30].randomElement() ?? 20
-            let correctS = c + (c * p) / 100
-            correctAnswerVal = "\(correctS)"
-            distractors = ["\(correctS - 15)", "\(correctS + 20)", "\(c)"]
-            prompt = language == .tr ?
-                "Maliyet fiyatı \(c) TL olan bir ürün %\(p) kârla satılırsa satış fiyatı kaç TL olur?" :
-                "If a product costing \(c) TL is sold at a \(p)% profit, what is the selling price in TL?"
-            numeric = ["c": Double(c), "p": Double(p), "correct": Double(correctS), "sub": 4.0]
         }
         
         return Question(
@@ -1599,7 +1924,16 @@ public struct Question: Identifiable, Codable, Equatable {
     }
     
     private static func generateTytFoundationsQuestion(difficulty: AppDifficulty, language: AppLanguage) -> Question {
-        let subTopic = Int.random(in: 0...2)
+        let subTopic: Int
+        switch difficulty {
+        case .easy:
+            subTopic = Int.random(in: 0...1)
+        case .medium:
+            subTopic = Int.random(in: 0...2)
+        case .hard, .expert:
+            subTopic = Int.random(in: 0...2)
+        }
+        
         var prompt = ""
         var correctAnswerVal = ""
         var distractors: [String] = []
@@ -1607,21 +1941,49 @@ public struct Question: Identifiable, Codable, Equatable {
         
         switch subTopic {
         case 0:
-            // Fonksiyonlar: f(x) = Ax + B, find f(C)
-            let a = Int.random(in: 2...5)
-            let b = Int.random(in: 1...6)
-            let c = Int.random(in: 2...4)
-            let correct = a * c + b
-            correctAnswerVal = "\(correct)"
-            distractors = ["\(correct + 3)", "\(correct - 2)", "\(a * c)"]
-            prompt = language == .tr ?
-                "f(x) = \(a)x + \(b) olduğuna göre, f(\(c)) değerini bulun." :
-                "Given f(x) = \(a)x + \(b), find the value of f(\(c))."
-            numeric = ["a": Double(a), "b": Double(b), "c": Double(c), "correct": Double(correct), "sub": 0.0]
+            if difficulty == .easy {
+                let b = Int.random(in: 2...6)
+                let c = Int.random(in: 2...4)
+                let correct = c + b
+                correctAnswerVal = "\(correct)"
+                distractors = ["\(correct + 2)", "\(correct - 1)", "\(b * c)"]
+                prompt = language == .tr ?
+                    "f(x) = x + \(b) olduğuna göre, f(\(c)) değerini bulun." :
+                    "Given f(x) = x + \(b), find the value of f(\(c))."
+                numeric = ["a": 1.0, "b": Double(b), "c": Double(c), "correct": Double(correct), "sub": 0.0]
+            } else if difficulty == .medium {
+                let a = Int.random(in: 2...5)
+                let b = Int.random(in: 1...6)
+                let c = Int.random(in: 2...4)
+                let correct = a * c + b
+                correctAnswerVal = "\(correct)"
+                distractors = ["\(correct + 3)", "\(correct - 2)", "\(a * c)"]
+                prompt = language == .tr ?
+                    "f(x) = \(a)x + \(b) olduğuna göre, f(\(c)) değerini bulun." :
+                    "Given f(x) = \(a)x + \(b), find the value of f(\(c))."
+                numeric = ["a": Double(a), "b": Double(b), "c": Double(c), "correct": Double(correct), "sub": 0.0]
+            } else {
+                let correct = 4
+                correctAnswerVal = "4"
+                distractors = ["2", "6", "8"]
+                prompt = language == .tr ?
+                    "f(x) = 2x ve g(x) = x - 3 olduğuna göre, (f ∘ g)(5) değerini bulun." :
+                    "Given f(x) = 2x and g(x) = x - 3, find the value of (f ∘ g)(5)."
+                numeric = ["a": 2.0, "b": 0.0, "c": 5.0, "correct": 4.0, "sub": 0.0]
+            }
         case 1:
-            // Kartezyen: s(A) = N, s(B) = M -> s(A x B)
-            let n = Int.random(in: 3...7)
-            let m = Int.random(in: 3...6)
+            let n: Int
+            let m: Int
+            if difficulty == .easy {
+                n = 3
+                m = 4
+            } else if difficulty == .medium {
+                n = Int.random(in: 4...6)
+                m = Int.random(in: 3...5)
+            } else {
+                n = Int.random(in: 6...8)
+                m = Int.random(in: 5...7)
+            }
             let correct = n * m
             correctAnswerVal = "\(correct)"
             distractors = ["\(correct + 4)", "\(correct - 3)", "\(n + m)"]
@@ -1630,23 +1992,32 @@ public struct Question: Identifiable, Codable, Equatable {
                 "For sets A and B, if s(A) = \(n) and s(B) = \(m), find the number of elements in s(A × B)."
             numeric = ["n": Double(n), "m": Double(m), "correct": Double(correct), "sub": 1.0]
         default:
-            // İstatistik: Median of 5 sorted numbers
-            let base = Int.random(in: 5...15)
-            let num1 = base
-            let num2 = base + Int.random(in: 1...3)
-            let num3 = num2 + Int.random(in: 1...3)
-            let num4 = num3 + Int.random(in: 2...4)
-            let num5 = num4 + Int.random(in: 1...3)
-            
-            let list = [num1, num2, num3, num4, num5].shuffled()
-            let listStr = list.map { String($0) }.joined(separator: ", ")
-            
-            correctAnswerVal = "\(num3)"
-            distractors = ["\(num2)", "\(num4)", "\(num3 + 1)"]
-            prompt = language == .tr ?
-                "Verilen sayı grubunun medyan (ortanca) değerini bulun: [\(listStr)]" :
-                "Find the median value of the following numbers: [\(listStr)]"
-            numeric = ["n1": Double(num1), "n2": Double(num2), "n3": Double(num3), "n4": Double(num4), "n5": Double(num5), "sub": 2.0]
+            if difficulty == .medium {
+                let base = Int.random(in: 5...12)
+                let num1 = base
+                let num2 = base + 2
+                let num3 = base + 4
+                let num4 = base + 6
+                let num5 = base + 8
+                
+                let list = [num1, num2, num3, num4, num5].shuffled()
+                let listStr = list.map { String($0) }.joined(separator: ", ")
+                
+                correctAnswerVal = "\(num3)"
+                distractors = ["\(num2)", "\(num4)", "\(num3 + 1)"]
+                prompt = language == .tr ?
+                    "Verilen sayı grubunun medyan (ortanca) değerini bulun: [\(listStr)]" :
+                    "Find the median value of the following numbers: [\(listStr)]"
+                numeric = ["n1": Double(num1), "n2": Double(num2), "n3": Double(num3), "n4": Double(num4), "n5": Double(num5), "sub": 2.0]
+            } else {
+                let correct = 11
+                correctAnswerVal = "11"
+                distractors = ["10", "12", "13"]
+                prompt = language == .tr ?
+                    "Verilen sayı grubunun medyan (ortanca) değerini bulun: [5, 8, 10, 12, 15, 20]" :
+                    "Find the median value of the following numbers: [5, 8, 10, 12, 15, 20]"
+                numeric = ["n1": 5.0, "n2": 8.0, "n3": 10.0, "n4": 12.0, "n5": 15.0, "sub": 2.0]
+            }
         }
         
         return Question(
@@ -1659,7 +2030,16 @@ public struct Question: Identifiable, Codable, Equatable {
     }
     
     private static func generateTytProbabilityQuestion(difficulty: AppDifficulty, language: AppLanguage) -> Question {
-        let subTopic = Int.random(in: 0...3)
+        let subTopic: Int
+        switch difficulty {
+        case .easy:
+            subTopic = Int.random(in: 0...1)
+        case .medium:
+            subTopic = Int.random(in: 0...2)
+        case .hard, .expert:
+            subTopic = Int.random(in: 0...3)
+        }
+        
         var prompt = ""
         var correctAnswerVal = ""
         var distractors: [String] = []
@@ -1667,27 +2047,67 @@ public struct Question: Identifiable, Codable, Equatable {
         
         switch subTopic {
         case 0:
-            // Permütasyon: 4 people, N chairs -> P(N, 4)
-            let n = [5, 6].randomElement() ?? 5
-            let correct = n == 5 ? 120 : 360
-            correctAnswerVal = "\(correct)"
-            distractors = [n == 5 ? "24" : "720", n == 5 ? "60" : "120", "240"]
-            prompt = language == .tr ?
-                "4 kişi, yan yana duran \(n) koltuğa kaç farklı şekilde oturabilir?" :
-                "In how many different ways can 4 people sit on \(n) adjacent chairs?"
-            numeric = ["n": Double(n), "correct": Double(correct), "sub": 0.0]
+            if difficulty == .easy {
+                correctAnswerVal = "6"
+                distractors = ["3", "9", "12"]
+                prompt = language == .tr ?
+                    "3 farklı kitap bir rafa yan yana kaç farklı şekilde dizilebilir?" :
+                    "In how many different ways can 3 different books be arranged side-by-side on a shelf?"
+                numeric = ["n": 3.0, "correct": 6.0, "sub": 0.0]
+            } else {
+                let n = [5, 6].randomElement() ?? 5
+                let correct = n == 5 ? 120 : 360
+                correctAnswerVal = "\(correct)"
+                distractors = [n == 5 ? "24" : "720", n == 5 ? "60" : "120", "240"]
+                prompt = language == .tr ?
+                    "4 kişi, yan yana duran \(n) koltuğa kaç farklı şekilde oturabilir?" :
+                    "In how many different ways can 4 people sit on \(n) adjacent chairs?"
+                numeric = ["n": Double(n), "correct": Double(correct), "sub": 0.0]
+            }
         case 1:
-            // Kombinasyon: committee of M from N -> C(N, M)
-            let configs = [(6, 3, 20), (6, 2, 15), (5, 2, 10)]
-            let config = configs.randomElement() ?? configs[0]
-            correctAnswerVal = "\(config.2)"
-            distractors = ["\(config.2 + 5)", "\(config.2 - 2)", "\(config.0 * config.1)"]
-            prompt = language == .tr ?
-                "\(config.0) kişi arasından \(config.1) kişilik bir komite kaç farklı şekilde seçilebilir?" :
-                "How many different ways can a committee of \(config.1) people be chosen from \(config.0) people?"
-            numeric = ["n": Double(config.0), "m": Double(config.1), "correct": Double(config.2), "sub": 1.0]
+            if difficulty == .easy {
+                correctAnswerVal = "6"
+                distractors = ["4", "8", "12"]
+                prompt = language == .tr ?
+                    "4 kişi arasından 2 kişilik bir takım kaç farklı şekilde seçilebilir?" :
+                    "How many different ways can a team of 2 people be chosen from 4 people?"
+                numeric = ["n": 4.0, "m": 2.0, "correct": 6.0, "sub": 1.0]
+            } else {
+                let config = [(6, 3, 20), (6, 2, 15), (5, 2, 10)].randomElement() ?? (6, 3, 20)
+                correctAnswerVal = "\(config.2)"
+                distractors = ["\(config.2 + 5)", "\(config.2 - 2)", "\(config.0 * config.1)"]
+                prompt = language == .tr ?
+                    "\(config.0) kişi arasından \(config.1) kişilik bir komite kaç farklı şekilde seçilebilir?" :
+                    "How many different ways can a committee of \(config.1) people be chosen from \(config.0) people?"
+                numeric = ["n": Double(config.0), "m": Double(config.1), "correct": Double(config.2), "sub": 1.0]
+            }
         case 2:
-            // Binom: (x + A)^3 -> coefficient of x^2 is 3A
+            if difficulty == .easy {
+                correctAnswerVal = "1/2"
+                distractors = ["1/3", "1/4", "1"]
+                prompt = language == .tr ?
+                    "Düzgün bir madeni para havaya atılıyor. Üst yüze tura gelme olasılığı kaçtır?" :
+                    "A fair coin is tossed. What is the probability of getting heads?"
+                numeric = ["s": 2.0, "sub": 3.0]
+            } else if difficulty == .medium {
+                correctAnswerVal = "1/2"
+                distractors = ["1/3", "2/3", "1/6"]
+                prompt = language == .tr ?
+                    "Bir zar havaya atılıyor. Üst yüze gelen sayının çift sayı olma olasılığı kaçtır?" :
+                    "A die is rolled. What is the probability of getting an even number?"
+                numeric = ["s": 6.0, "sub": 3.0]
+            } else {
+                let sums = [3, 4, 11]
+                let s = sums.randomElement() ?? 3
+                let correctProb = s == 4 ? "1/12" : "1/18"
+                correctAnswerVal = correctProb
+                distractors = [s == 4 ? "1/18" : "1/12", "1/6", "1/9"]
+                prompt = language == .tr ?
+                    "İki zar aynı anda atılıyor. Üst yüze gelen sayıların toplamının \(s) olma olasılığı kaçtır?" :
+                    "Two dice are rolled simultaneously. What is the probability that the sum of the numbers is \(s)?"
+                numeric = ["s": Double(s), "sub": 3.0]
+            }
+        default:
             let a = Int.random(in: 2...5)
             let correct = 3 * a
             correctAnswerVal = "\(correct)"
@@ -1696,17 +2116,6 @@ public struct Question: Identifiable, Codable, Equatable {
                 "(x + \(a))³ ifadesinin açılımındaki x² teriminin katsayısını bulun." :
                 "Find the coefficient of the x² term in the expansion of (x + \(a))³."
             numeric = ["a": Double(a), "correct": Double(correct), "sub": 2.0]
-        default:
-            // Olasılık: two dice rolled, sum is S -> prob
-            let sums = [3, 4, 11]
-            let s = sums.randomElement() ?? 3
-            let correctProb = s == 4 ? "1/12" : "1/18"
-            correctAnswerVal = correctProb
-            distractors = [s == 4 ? "1/18" : "1/12", "1/6", "1/9"]
-            prompt = language == .tr ?
-                "İki zar aynı anda atılıyor. Üst yüze gelen sayıların toplamının \(s) olma olasılığı kaçtır?" :
-                "Two dice are rolled simultaneously. What is the probability that the sum of the numbers is \(s)?"
-            numeric = ["s": Double(s), "sub": 3.0]
         }
         
         return Question(
