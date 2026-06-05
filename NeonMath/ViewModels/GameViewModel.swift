@@ -229,6 +229,9 @@ public final class GameViewModel {
             profile.streakRecord = streak
         }
         
+        // Report high score to Game Center
+        GameCenterManager.shared.reportScore(score: score)
+        
         // Persist profile
         profile.save()
         userProfile = profile

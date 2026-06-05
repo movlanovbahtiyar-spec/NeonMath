@@ -56,8 +56,18 @@ public struct MainLobbyView: View {
             
             VStack(spacing: 0) {
                 // MARK: - Top Utility Bar
-                HStack {
+                HStack(spacing: 20) {
                     Spacer()
+                    
+                    // Game Center Trophy Button
+                    Button(action: {
+                        HapticFeedbackManager.shared.playSoftImpact()
+                        GameCenterManager.shared.showLeaderboard()
+                    }) {
+                        Image(systemName: "trophy.fill")
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundColor(.white.opacity(0.55))
+                    }
                     
                     // Settings Gear Button
                     Button(action: {
@@ -213,6 +223,9 @@ public struct MainLobbyView: View {
         }
         .sheet(isPresented: $showSettings) {
             SettingsView(viewModel: viewModel, pilotColor: pilotRank.color)
+        }
+        .onAppear {
+            GameCenterManager.shared.authenticateLocalPlayer()
         }
     }
     
