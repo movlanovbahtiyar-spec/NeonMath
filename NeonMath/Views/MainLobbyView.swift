@@ -441,19 +441,19 @@ struct SettingsRulesDetailView: View {
                         title: language == .tr ? "MAT-1 MÜFREDATI" : "MAT-1 CURRICULUM",
                         color: Color(hex: "#00F0FF"),
                         icon: "1.circle.fill",
-                        description: language == .tr ? "Temel Matematik, mantık, kümeler ve oran-orantı konularında uzmanlaşın." : "Master basic algebra, logic, set theory, and ratios.",
+                        description: language == .tr ? "Sayı kümelerinden denklemlere, TYT problemleri ve olasılığa kadar Temel Matematik." : "Comprehensive Basic Mathematics from numbers, equations, word problems to counting & probability.",
                         topics: language == .tr ? [
-                            "Temel Aritmetik (Sayı Matrisi Bulmacaları)",
-                            "Örüntüler (Köşe Değer Dizi IQ Bulmacaları)",
-                            "Venn Şemaları (Kümeler Kesme & Birleşim)",
-                            "Sembolik Mantık (p, q Doğruluk Değerleri)",
-                            "Oran & Orantı (Neon Çizgi Bölüm Hesapları)"
+                            "Sayılar ve Temel Kavramlar (Sayı Kümeleri, Basamaklar, Bölünebilme, Asal Sayılar, EBOB-EKOK)",
+                            "Denklem ve Eşitsizlikler (Birinci Dereceden Denklemler, Mutlak Değer, Üslü & Köklü Sayılar)",
+                            "Problemler (Sayı, Kesir, Yaş, İşçi, Hız/Hareket, Yüzde, Kâr-Zarar, Karışım Problemleri)",
+                            "Mantık, Küme ve Fonksiyon Temelleri (Sembolik Mantık, Kümeler, Kartezyen Çarpım, İstatistik)",
+                            "Sayma ve Olasılık (Permütasyon, Kombinasyon, Binom Açılımı, Olasılık Teorisi)"
                         ] : [
-                            "Basic Arithmetic (Matrix Grid Puzzles)",
-                            "Sequences (Vertex Arithmetic Challenges)",
-                            "Venn Diagrams (Set Intersection & Union)",
-                            "Symbolic Logic (p, q Truth Value Equations)",
-                            "Ratios & Proportions (Segment Partitioning)"
+                            "Numbers & Basic Concepts (Digit Analysis, Divisibility Rules, Prime Factorization, EBOB-EKOK)",
+                            "Equations & Inequalities (Linear Equations, Absolute Values, Exponential & Radical Numbers)",
+                            "Word Problems (Number, Fraction, Age, Work, Speed/Motion, Percentages, Profit & Loss)",
+                            "Functions, Logic & Sets (Propositional Logic, Set Unions/Intersections, Cartesian Products, Stats)",
+                            "Counting & Probability (Permutations, Combinations, Binomial Expansion, Probability)"
                         ]
                     )
                     

@@ -61,6 +61,16 @@ public struct CanvasDrawView: View {
                 drawLogarithmBasics(context: context, size: size, strokeStyle: strokeStyle)
             case .transformations:
                 drawTransformations(context: context, size: size, strokeStyle: strokeStyle)
+            case .tytNumbers:
+                drawTytNumbers(context: context, size: size, strokeStyle: strokeStyle)
+            case .tytEquations:
+                drawTytEquations(context: context, size: size, strokeStyle: strokeStyle)
+            case .tytProblems:
+                drawTytProblems(context: context, size: size, strokeStyle: strokeStyle)
+            case .tytFoundations:
+                drawTytFoundations(context: context, size: size, strokeStyle: strokeStyle)
+            case .tytProbability:
+                drawTytProbability(context: context, size: size, strokeStyle: strokeStyle)
             }
         }
         .frame(height: 280)
@@ -1166,5 +1176,163 @@ public struct CanvasDrawView: View {
         arrow.move(to: ptP)
         arrow.addLine(to: ptF)
         context.stroke(arrow, with: .color(.white.opacity(0.4)), style: StrokeStyle(lineWidth: 1.5, dash: [4, 4]))
+    }
+    
+    private func drawTytNumbers(context: GraphicsContext, size: CGSize, strokeStyle: StrokeStyle) {
+        let cx = size.width / 2.0
+        let cy = size.height / 2.0
+        let r: CGFloat = 60.0
+        
+        var baseCircle = Path()
+        baseCircle.addEllipse(in: CGRect(x: cx - r, y: cy - r, width: r * 2, height: r * 2))
+        context.stroke(baseCircle, with: .color(glowColor.opacity(0.3)), lineWidth: 1.5)
+        
+        let slices = 4
+        
+        var slicePath = Path()
+        slicePath.move(to: CGPoint(x: cx, y: cy))
+        slicePath.addArc(center: CGPoint(x: cx, y: cy), radius: r, startAngle: .degrees(0), endAngle: .degrees(90), clockwise: false)
+        slicePath.closeSubpath()
+        context.fill(slicePath, with: .color(glowColor.opacity(0.2)))
+        strokeGlowPath(slicePath, in: context, style: strokeStyle, color: glowColor)
+        
+        var dividers = Path()
+        for i in 0..<slices {
+            let angle = Double(i) * (360.0 / Double(slices))
+            let rad = angle * .pi / 180.0
+            dividers.move(to: CGPoint(x: cx, y: cy))
+            dividers.addLine(to: CGPoint(x: cx + r * cos(rad), y: cy + r * sin(rad)))
+        }
+        context.stroke(dividers, with: .color(.white.opacity(0.4)), lineWidth: 1.5)
+        
+        drawLabel(context: context, text: "1/4", at: CGPoint(x: cx - 25, y: cy - 25))
+    }
+    
+    private func drawTytEquations(context: GraphicsContext, size: CGSize, strokeStyle: StrokeStyle) {
+        let cx = size.width / 2.0
+        let cy = size.height / 2.0
+        
+        var line = Path()
+        line.move(to: CGPoint(x: cx - 110, y: cy))
+        line.addLine(to: CGPoint(x: cx + 110, y: cy))
+        context.stroke(line, with: .color(.white.opacity(0.3)), lineWidth: 2.0)
+        
+        let scale: CGFloat = 30.0
+        let points = [-3, -2, -1, 0, 1, 2, 3]
+        for p in points {
+            let x = cx + CGFloat(p) * scale
+            var tick = Path()
+            tick.move(to: CGPoint(x: x, y: cy - 5))
+            tick.addLine(to: CGPoint(x: x, y: cy + 5))
+            context.stroke(tick, with: .color(.white.opacity(0.5)), lineWidth: 1.0)
+            drawLabel(context: context, text: "\(p)", at: CGPoint(x: x, y: cy + 20))
+        }
+        
+        let startX = cx + 1.0 * scale
+        let endX = cx + 3.0 * scale
+        let highlightRect = CGRect(x: startX, y: cy - 3, width: endX - startX, height: 6)
+        let highlightPath = Path(roundedRect: highlightRect, cornerRadius: 3)
+        context.fill(highlightPath, with: .color(glowColor.opacity(0.25)))
+        context.stroke(highlightPath, with: .color(glowColor), lineWidth: 2.0)
+    }
+    
+    private func drawTytProblems(context: GraphicsContext, size: CGSize, strokeStyle: StrokeStyle) {
+        let cx = size.width / 2.0
+        let cy = size.height / 2.0
+        
+        var road = Path()
+        road.move(to: CGPoint(x: cx - 120, y: cy + 20))
+        road.addLine(to: CGPoint(x: cx + 120, y: cy + 20))
+        context.stroke(road, with: .color(.white.opacity(0.3)), style: StrokeStyle(lineWidth: 1.5, dash: [6, 4]))
+        
+        let rectA = CGRect(x: cx - 90, y: cy - 10, width: 24, height: 16)
+        let pathA = Path(roundedRect: rectA, cornerRadius: 4)
+        context.stroke(pathA, with: .color(glowColor), lineWidth: 2.0)
+        drawLabel(context: context, text: "A", at: CGPoint(x: cx - 78, y: cy - 22))
+        
+        var vectorA = Path()
+        vectorA.move(to: CGPoint(x: cx - 66, y: cy - 2))
+        vectorA.addLine(to: CGPoint(x: cx - 40, y: cy - 2))
+        vectorA.move(to: CGPoint(x: cx - 45, y: cy - 6))
+        vectorA.addLine(to: CGPoint(x: cx - 40, y: cy - 2))
+        vectorA.addLine(to: CGPoint(x: cx - 45, y: cy + 2))
+        context.stroke(vectorA, with: .color(glowColor), lineWidth: 1.5)
+        
+        let rectB = CGRect(x: cx + 66, y: cy - 10, width: 24, height: 16)
+        let pathB = Path(roundedRect: rectB, cornerRadius: 4)
+        context.stroke(pathB, with: .color(Color(hex: "#BD00FF")), lineWidth: 2.0)
+        drawLabel(context: context, text: "B", at: CGPoint(x: cx + 78, y: cy - 22))
+        
+        var vectorB = Path()
+        vectorB.move(to: CGPoint(x: cx + 66, y: cy - 2))
+        vectorB.addLine(to: CGPoint(x: cx + 40, y: cy - 2))
+        vectorB.move(to: CGPoint(x: cx + 45, y: cy - 6))
+        vectorB.addLine(to: CGPoint(x: cx + 40, y: cy - 2))
+        vectorB.addLine(to: CGPoint(x: cx + 45, y: cy + 2))
+        context.stroke(vectorB, with: .color(Color(hex: "#BD00FF")), lineWidth: 1.5)
+    }
+    
+    private func drawTytFoundations(context: GraphicsContext, size: CGSize, strokeStyle: StrokeStyle) {
+        let cx = size.width / 2.0
+        let cy = size.height / 2.0
+        
+        let ovalA = CGRect(x: cx - 90, y: cy - 50, width: 60, height: 100)
+        let pathA = Path(ellipseIn: ovalA)
+        context.stroke(pathA, with: .color(glowColor.opacity(0.4)), lineWidth: 1.5)
+        drawLabel(context: context, text: "A", at: CGPoint(x: cx - 60, y: cy - 65))
+        
+        let ovalB = CGRect(x: cx + 30, y: cy - 50, width: 60, height: 100)
+        let pathB = Path(ellipseIn: ovalB)
+        context.stroke(pathB, with: .color(Color(hex: "#BD00FF").opacity(0.4)), lineWidth: 1.5)
+        drawLabel(context: context, text: "B", at: CGPoint(x: cx + 60, y: cy - 65))
+        
+        let pA1 = CGPoint(x: cx - 60, y: cy - 20)
+        let pA2 = CGPoint(x: cx - 60, y: cy + 20)
+        context.fill(Path(ellipseIn: CGRect(x: pA1.x-3, y: pA1.y-3, width: 6, height: 6)), with: .color(.white))
+        context.fill(Path(ellipseIn: CGRect(x: pA2.x-3, y: pA2.y-3, width: 6, height: 6)), with: .color(.white))
+        drawLabel(context: context, text: "x", at: CGPoint(x: pA1.x - 12, y: pA1.y - 10))
+        drawLabel(context: context, text: "y", at: CGPoint(x: pA2.x - 12, y: pA2.y - 10))
+        
+        let pB1 = CGPoint(x: cx + 60, y: cy - 20)
+        let pB2 = CGPoint(x: cx + 60, y: cy + 20)
+        context.fill(Path(ellipseIn: CGRect(x: pB1.x-3, y: pB1.y-3, width: 6, height: 6)), with: .color(.white))
+        context.fill(Path(ellipseIn: CGRect(x: pB2.x-3, y: pB2.y-3, width: 6, height: 6)), with: .color(.white))
+        drawLabel(context: context, text: "f(x)", at: CGPoint(x: pB1.x + 16, y: pB1.y - 10))
+        drawLabel(context: context, text: "f(y)", at: CGPoint(x: pB2.x + 16, y: pB2.y - 10))
+        
+        var arrow1 = Path()
+        arrow1.move(to: pA1)
+        arrow1.addQuadCurve(to: pB1, control: CGPoint(x: cx, y: cy - 35))
+        context.stroke(arrow1, with: .color(glowColor), lineWidth: 1.5)
+        
+        var arrow2 = Path()
+        arrow2.move(to: pA2)
+        arrow2.addQuadCurve(to: pB2, control: CGPoint(x: cx, y: cy + 5))
+        context.stroke(arrow2, with: .color(Color(hex: "#BD00FF")), lineWidth: 1.5)
+        
+        drawLabel(context: context, text: "f", at: CGPoint(x: cx, y: cy - 35))
+    }
+    
+    private func drawTytProbability(context: GraphicsContext, size: CGSize, strokeStyle: StrokeStyle) {
+        let cx = size.width / 2.0
+        let cy = size.height / 2.0
+        
+        let diceRect1 = CGRect(x: cx - 60, y: cy - 25, width: 50, height: 50)
+        let path1 = Path(roundedRect: diceRect1, cornerRadius: 8)
+        strokeGlowPath(path1, in: context, style: strokeStyle, color: glowColor)
+        
+        let dot1 = Path(ellipseIn: CGRect(x: cx - 40, y: cy - 5, width: 10, height: 10))
+        context.fill(dot1, with: .color(.white))
+        
+        let diceRect2 = CGRect(x: cx + 10, y: cy - 25, width: 50, height: 50)
+        let path2 = Path(roundedRect: diceRect2, cornerRadius: 8)
+        strokeGlowPath(path2, in: context, style: strokeStyle, color: Color(hex: "#BD00FF"))
+        
+        let dot2 = Path(ellipseIn: CGRect(x: cx + 18, y: cy + 7, width: 8, height: 8))
+        let dot3 = Path(ellipseIn: CGRect(x: cx + 31, y: cy - 4, width: 8, height: 8))
+        let dot4 = Path(ellipseIn: CGRect(x: cx + 44, y: cy - 15, width: 8, height: 8))
+        context.fill(dot2, with: .color(.white))
+        context.fill(dot3, with: .color(.white))
+        context.fill(dot4, with: .color(.white))
     }
 }
