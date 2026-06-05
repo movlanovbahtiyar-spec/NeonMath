@@ -1,5 +1,73 @@
 import Foundation
 
+/// Defines the available sub-categories.
+public enum Math1SubCategory: String, Codable, CaseIterable {
+    case basicArithmetic = "Basic Arithmetic"
+    case sequences = "Sequences"
+    case vennDiagrams = "Venn Diagrams"
+    case logic = "Logic"
+    case ratios = "Ratios"
+}
+
+public enum Math2SubCategory: String, Codable, CaseIterable {
+    case functionGraphs = "Function Graphs"
+    case parabolaVertices = "Parabola Vertices"
+    case unitCircle = "Unit Circle Trigonometry"
+    case logarithmBasics = "Logarithm Basics"
+    case vectors2D = "2D Vectors"
+}
+
+public enum GeometrySubCategory: String, Codable, CaseIterable {
+    case linesAngles = "Lines & Angles"
+    case triangleAngles = "Triangle Angles"
+    case pythagoreanTriplets = "Pythagorean Triplets"
+    case circleTheorems = "Circle Theorems"
+    case transformations = "Transformations"
+}
+
+public enum QuestionSubCategory: Codable, Equatable {
+    case math1(Math1SubCategory)
+    case math2(Math2SubCategory)
+    case geometry(GeometrySubCategory)
+    
+    private enum CodingKeys: String, CodingKey {
+        case type, value
+    }
+    
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let typeStr = try container.decode(String.self, forKey: .type)
+        switch typeStr {
+        case "math1":
+            let val = try container.decode(Math1SubCategory.self, forKey: .value)
+            self = .math1(val)
+        case "math2":
+            let val = try container.decode(Math2SubCategory.self, forKey: .value)
+            self = .math2(val)
+        case "geometry":
+            let val = try container.decode(GeometrySubCategory.self, forKey: .value)
+            self = .geometry(val)
+        default:
+            throw DecodingError.dataCorruptedError(forKey: .type, in: container, debugDescription: "Unknown sub-category type")
+        }
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        switch self {
+        case .math1(let val):
+            try container.encode("math1", forKey: .type)
+            try container.encode(val, forKey: .value)
+        case .math2(let val):
+            try container.encode("math2", forKey: .type)
+            try container.encode(val, forKey: .value)
+        case .geometry(let val):
+            try container.encode("geometry", forKey: .type)
+            try container.encode(val, forKey: .value)
+        }
+    }
+}
+
 /// Defines the category of geometry, algebra, and trigonometry problems.
 public enum QuestionType: String, CaseIterable, Codable {
     // Geometry
@@ -19,6 +87,18 @@ public enum QuestionType: String, CaseIterable, Codable {
     case vectorPuzzle = "Algebra: Vector Coordinate"
     case functionGraph = "Algebra: Function Graph"
     case matrixGrid = "Algebra: Matrix Grid"
+    
+    // Math 1 New Categories
+    case vennDiagrams = "Math1: Venn Diagrams"
+    case logic = "Math1: Propositional Logic"
+    case ratios = "Math1: Ratios & Proportions"
+    
+    // Math 2 New Categories
+    case parabolaVertices = "Math2: Parabola Vertices"
+    case logarithmBasics = "Math2: Logarithm Basics"
+    
+    // Geometry New Categories
+    case transformations = "Geometry: Coordinate Transformations"
 }
 
 /// Represents the active difficulty tier of the procedural question.
@@ -33,6 +113,7 @@ public enum AppDifficulty {
 public struct Question: Identifiable, Codable, Equatable {
     public let id: UUID
     public let type: QuestionType
+    public let subCategory: QuestionSubCategory
     public let prompt: String
     public let options: [String]
     public let correctAnswer: String
@@ -46,6 +127,7 @@ public struct Question: Identifiable, Codable, Equatable {
     public init(
         id: UUID = UUID(),
         type: QuestionType,
+        subCategory: QuestionSubCategory,
         prompt: String,
         options: [String],
         correctAnswer: String,
@@ -54,6 +136,26 @@ public struct Question: Identifiable, Codable, Equatable {
     ) {
         self.id = id
         self.type = type
+        self.subCategory = subCategory
+        self.prompt = prompt
+        self.options = options
+        self.correctAnswer = correctAnswer
+        self.numericValues = numericValues
+        self.stringValues = stringValues
+    }
+    
+    public init(
+        id: UUID = UUID(),
+        type: QuestionType,
+        prompt: String,
+        options: [String],
+        correctAnswer: String,
+        numericValues: [String: Double],
+        stringValues: [String: String] = [:]
+    ) {
+        self.id = id
+        self.type = type
+        self.subCategory = Question.defaultSubCategory(for: type)
         self.prompt = prompt
         self.options = options
         self.correctAnswer = correctAnswer
@@ -64,7 +166,7 @@ public struct Question: Identifiable, Codable, Equatable {
     // MARK: - Backward Compatible Codable Decoder
     
     private enum CodingKeys: String, CodingKey {
-        case id, type, prompt, options, correctAnswer, numericValues, stringValues
+        case id, type, subCategory, prompt, options, correctAnswer, numericValues, stringValues
     }
     
     public init(from decoder: Decoder) throws {
@@ -76,6 +178,48 @@ public struct Question: Identifiable, Codable, Equatable {
         self.correctAnswer = try container.decode(String.self, forKey: .correctAnswer)
         self.numericValues = try container.decode([String: Double].self, forKey: .numericValues)
         self.stringValues = try container.decodeIfPresent([String: String].self, forKey: .stringValues) ?? [:]
+        
+        // Backward compatible decoding for subCategory
+        if let sub = try container.decodeIfPresent(QuestionSubCategory.self, forKey: .subCategory) {
+            self.subCategory = sub
+        } else {
+            self.subCategory = Question.defaultSubCategory(for: self.type)
+        }
+    }
+    
+    public static func defaultSubCategory(for type: QuestionType) -> QuestionSubCategory {
+        switch type {
+        case .triangleAngle:
+            return .geometry(.triangleAngles)
+        case .transversalParallel, .supplementaryLines:
+            return .geometry(.linesAngles)
+        case .inscribedCircleAngle, .circleTangent:
+            return .geometry(.circleTheorems)
+        case .geometricIQPattern:
+            return .geometry(.transformations)
+        case .unitCircle, .trigIdentity:
+            return .math2(.unitCircle)
+        case .triangleTrig:
+            return .geometry(.pythagoreanTriplets)
+        case .vectorPuzzle:
+            return .math2(.vectors2D)
+        case .functionGraph:
+            return .math2(.functionGraphs)
+        case .matrixGrid:
+            return .math1(.basicArithmetic)
+        case .vennDiagrams:
+            return .math1(.vennDiagrams)
+        case .logic:
+            return .math1(.logic)
+        case .ratios:
+            return .math1(.ratios)
+        case .parabolaVertices:
+            return .math2(.parabolaVertices)
+        case .logarithmBasics:
+            return .math2(.logarithmBasics)
+        case .transformations:
+            return .geometry(.transformations)
+        }
     }
     
     /// Generates a question dynamically adjusted to the player's current score (Dynamic Difficulty Adjustment), chosen language, and chosen curriculum track.
@@ -92,51 +236,142 @@ public struct Question: Identifiable, Codable, Equatable {
             difficulty = .expert
         }
         
-        // Filter the available question types based on the selected track
-        let availableTypes: [QuestionType]
+        let selectedType: QuestionType
+        let chosenSubCategory: QuestionSubCategory
+        
         switch track {
         case .mat1:
-            // Basic geometry + basic algebra/graphs
-            availableTypes = [.triangleAngle, .transversalParallel, .supplementaryLines, .matrixGrid, .functionGraph]
+            let sub = Math1SubCategory.allCases.randomElement() ?? .basicArithmetic
+            chosenSubCategory = .math1(sub)
+            switch sub {
+            case .basicArithmetic:
+                selectedType = .matrixGrid
+            case .sequences:
+                selectedType = .geometricIQPattern
+            case .vennDiagrams:
+                selectedType = .vennDiagrams
+            case .logic:
+                selectedType = .logic
+            case .ratios:
+                selectedType = .ratios
+            }
         case .mat2:
-            // Trigonometry, vectors
-            availableTypes = [.unitCircle, .triangleTrig, .trigIdentity, .vectorPuzzle]
+            let sub = Math2SubCategory.allCases.randomElement() ?? .functionGraphs
+            chosenSubCategory = .math2(sub)
+            switch sub {
+            case .functionGraphs:
+                selectedType = .functionGraph
+            case .parabolaVertices:
+                selectedType = .parabolaVertices
+            case .unitCircle:
+                selectedType = [.unitCircle, .trigIdentity].randomElement() ?? .unitCircle
+            case .logarithmBasics:
+                selectedType = .logarithmBasics
+            case .vectors2D:
+                selectedType = .vectorPuzzle
+            }
         case .geometry:
-            // Pure geometry
-            availableTypes = [.triangleAngle, .transversalParallel, .supplementaryLines, .inscribedCircleAngle, .circleTangent, .geometricIQPattern]
+            let sub = GeometrySubCategory.allCases.randomElement() ?? .linesAngles
+            chosenSubCategory = .geometry(sub)
+            switch sub {
+            case .linesAngles:
+                selectedType = [.transversalParallel, .supplementaryLines].randomElement() ?? .transversalParallel
+            case .triangleAngles:
+                selectedType = .triangleAngle
+            case .pythagoreanTriplets:
+                selectedType = .triangleTrig
+            case .circleTheorems:
+                selectedType = [.inscribedCircleAngle, .circleTangent].randomElement() ?? .inscribedCircleAngle
+            case .transformations:
+                selectedType = .transformations
+            }
         case .mix:
-            // All question types
-            availableTypes = QuestionType.allCases
+            // Weighted selection: 35% Math 1, 35% Math 2, 30% Geometry
+            let rand = Double.random(in: 0...100)
+            if rand < 35.0 {
+                let sub = Math1SubCategory.allCases.randomElement() ?? .basicArithmetic
+                chosenSubCategory = .math1(sub)
+                switch sub {
+                case .basicArithmetic: selectedType = .matrixGrid
+                case .sequences: selectedType = .geometricIQPattern
+                case .vennDiagrams: selectedType = .vennDiagrams
+                case .logic: selectedType = .logic
+                case .ratios: selectedType = .ratios
+                }
+            } else if rand < 70.0 {
+                let sub = Math2SubCategory.allCases.randomElement() ?? .functionGraphs
+                chosenSubCategory = .math2(sub)
+                switch sub {
+                case .functionGraphs: selectedType = .functionGraph
+                case .parabolaVertices: selectedType = .parabolaVertices
+                case .unitCircle: selectedType = [.unitCircle, .trigIdentity].randomElement() ?? .unitCircle
+                case .logarithmBasics: selectedType = .logarithmBasics
+                case .vectors2D: selectedType = .vectorPuzzle
+                }
+            } else {
+                let sub = GeometrySubCategory.allCases.randomElement() ?? .linesAngles
+                chosenSubCategory = .geometry(sub)
+                switch sub {
+                case .linesAngles: selectedType = [.transversalParallel, .supplementaryLines].randomElement() ?? .transversalParallel
+                case .triangleAngles: selectedType = .triangleAngle
+                case .pythagoreanTriplets: selectedType = .triangleTrig
+                case .circleTheorems: selectedType = [.inscribedCircleAngle, .circleTangent].randomElement() ?? .inscribedCircleAngle
+                case .transformations: selectedType = .transformations
+                }
+            }
         }
         
-        let tierType = availableTypes.randomElement() ?? .triangleAngle
-        
-        switch tierType {
+        var generatedQuestion: Question
+        switch selectedType {
         case .triangleAngle:
-            return generateTriangleAngleQuestion(difficulty: difficulty, language: language)
+            generatedQuestion = generateTriangleAngleQuestion(difficulty: difficulty, language: language)
         case .transversalParallel:
-            return generateParallelTransversalQuestion(difficulty: difficulty, language: language)
+            generatedQuestion = generateParallelTransversalQuestion(difficulty: difficulty, language: language)
         case .supplementaryLines:
-            return generateSupplementaryLinesQuestion(difficulty: difficulty, language: language)
+            generatedQuestion = generateSupplementaryLinesQuestion(difficulty: difficulty, language: language)
         case .inscribedCircleAngle:
-            return generateInscribedCircleAngleQuestion(difficulty: difficulty, language: language)
+            generatedQuestion = generateInscribedCircleAngleQuestion(difficulty: difficulty, language: language)
         case .circleTangent:
-            return generateCircleTangentQuestion(difficulty: difficulty, language: language)
+            generatedQuestion = generateCircleTangentQuestion(difficulty: difficulty, language: language)
         case .geometricIQPattern:
-            return generateGeometricIQPatternQuestion(difficulty: difficulty, language: language)
+            generatedQuestion = generateGeometricIQPatternQuestion(difficulty: difficulty, language: language)
         case .unitCircle:
-            return generateUnitCircleQuestion(difficulty: difficulty, language: language)
+            generatedQuestion = generateUnitCircleQuestion(difficulty: difficulty, language: language)
         case .triangleTrig:
-            return generateTriangleTrigQuestion(difficulty: difficulty, language: language)
+            generatedQuestion = generateTriangleTrigQuestion(difficulty: difficulty, language: language)
         case .trigIdentity:
-            return generateTrigIdentityQuestion(difficulty: difficulty, language: language)
+            generatedQuestion = generateTrigIdentityQuestion(difficulty: difficulty, language: language)
         case .vectorPuzzle:
-            return generateVectorPuzzleQuestion(difficulty: difficulty, language: language)
+            generatedQuestion = generateVectorPuzzleQuestion(difficulty: difficulty, language: language)
         case .functionGraph:
-            return generateFunctionGraphQuestion(difficulty: difficulty, language: language)
+            generatedQuestion = generateFunctionGraphQuestion(difficulty: difficulty, language: language)
         case .matrixGrid:
-            return generateMatrixGridQuestion(difficulty: difficulty, language: language)
+            generatedQuestion = generateMatrixGridQuestion(difficulty: difficulty, language: language)
+        case .vennDiagrams:
+            generatedQuestion = generateVennDiagramsQuestion(difficulty: difficulty, language: language)
+        case .logic:
+            generatedQuestion = generateLogicQuestion(difficulty: difficulty, language: language)
+        case .ratios:
+            generatedQuestion = generateRatiosQuestion(difficulty: difficulty, language: language)
+        case .parabolaVertices:
+            generatedQuestion = generateParabolaVerticesQuestion(difficulty: difficulty, language: language)
+        case .logarithmBasics:
+            generatedQuestion = generateLogarithmBasicsQuestion(difficulty: difficulty, language: language)
+        case .transformations:
+            generatedQuestion = generateTransformationsQuestion(difficulty: difficulty, language: language)
         }
+        
+        // Return question with the exactly chosen subCategory to ensure weighting/tracking fits 100%
+        return Question(
+            id: generatedQuestion.id,
+            type: generatedQuestion.type,
+            subCategory: chosenSubCategory,
+            prompt: generatedQuestion.prompt,
+            options: generatedQuestion.options,
+            correctAnswer: generatedQuestion.correctAnswer,
+            numericValues: generatedQuestion.numericValues,
+            stringValues: generatedQuestion.stringValues
+        )
     }
     
     public static func generateRandom(language: AppLanguage, track: CurriculumTrack = .mat1) -> Question {
@@ -743,6 +978,252 @@ public struct Question: Identifiable, Codable, Equatable {
                 "valB": valB,
                 "valC": valC,
                 "valX": valX
+            ]
+        )
+    }
+    
+    // MARK: - Procedural Generators (New Sub-categories)
+    
+    private static func generateVennDiagramsQuestion(difficulty: AppDifficulty, language: AppLanguage) -> Question {
+        let a = Int.random(in: 10...30)
+        let b = Int.random(in: 12...35)
+        let intersection = Int.random(in: 3...min(a, b) - 2)
+        let union = a + b - intersection
+        
+        let correctString = "\(union)"
+        let distractors = ["\(union + 4)", "\(union - 3)", "\(a + b)"].filter { $0 != correctString }
+        let options = shuffleOptions(correct: correctString, distractors: distractors)
+        
+        let prompt = language == .tr ? 
+            "|A| = \(a), |B| = \(b) ve |A ∩ B| = \(intersection) ise, |A ∪ B| birleşim kümesinin eleman sayısını bulun." :
+            "If |A| = \(a), |B| = \(b), and |A ∩ B| = \(intersection), find the cardinality of the union |A ∪ B|."
+        
+        return Question(
+            type: .vennDiagrams,
+            prompt: prompt,
+            options: options,
+            correctAnswer: correctString,
+            numericValues: [
+                "a": Double(a),
+                "b": Double(b),
+                "intersection": Double(intersection),
+                "union": Double(union)
+            ]
+        )
+    }
+    
+    private static func generateLogicQuestion(difficulty: AppDifficulty, language: AppLanguage) -> Question {
+        let p = Int.random(in: 0...1)
+        let q = Int.random(in: 0...1)
+        let format = Int.random(in: 0...2)
+        
+        let correctVal: Int
+        let expressionStr: String
+        
+        switch format {
+        case 0:
+            correctVal = ((p == 1 || q == 1) && p == 0) ? 1 : 0
+            expressionStr = "(p ∨ q) ∧ ¬p"
+        case 1:
+            correctVal = ((p == 1 && q == 1) || q == 0) ? 1 : 0
+            expressionStr = "(p ∧ q) ∨ ¬q"
+        default:
+            correctVal = (p == 1 && q == 0) ? 0 : 1
+            expressionStr = "p ⟹ q"
+        }
+        
+        let correctString = "\(correctVal)"
+        let undefinedStr = language == .tr ? "Tanımsız" : "Undefined"
+        let finalOptions = [correctString, correctVal == 1 ? "0" : "1", undefinedStr].shuffled()
+        
+        let prompt = language == .tr ?
+            "p = \(p) ve q = \(q) için verilen mantıksal ifadenin doğruluk değerini bulun: \(expressionStr)" :
+            "Find the truth value of the logical expression: \(expressionStr), given p = \(p) and q = \(q)."
+        
+        return Question(
+            type: .logic,
+            prompt: prompt,
+            options: finalOptions,
+            correctAnswer: correctString,
+            numericValues: [
+                "p": Double(p),
+                "q": Double(q),
+                "format": Double(format),
+                "correct": Double(correctVal)
+            ]
+        )
+    }
+    
+    private static func generateRatiosQuestion(difficulty: AppDifficulty, language: AppLanguage) -> Question {
+        let r1 = Int.random(in: 2...4)
+        let r2 = Int.random(in: 5...7)
+        let factor = Int.random(in: 5...12)
+        let total = (r1 + r2) * factor
+        
+        let findLarger = Bool.random()
+        let correctVal = findLarger ? (r2 * factor) : (r1 * factor)
+        
+        let correctString = "\(correctVal)"
+        let distractors = ["\(correctVal + factor)", "\(correctVal - factor)", "\(total - correctVal)"].filter { $0 != correctString }
+        let options = shuffleOptions(correct: correctString, distractors: distractors)
+        
+        let prompt: String
+        if language == .tr {
+            let partText = findLarger ? "büyük" : "küçük"
+            prompt = "\(total) birim uzunluğundaki bir çizgi \(r1):\(r2) oranında ikiye bölünmüştür. \(partText) parçanın uzunluğunu bulun."
+        } else {
+            let partText = findLarger ? "larger" : "smaller"
+            prompt = "A line of length \(total) units is divided in the ratio \(r1):\(r2). Find the length of the \(partText) segment."
+        }
+        
+        return Question(
+            type: .ratios,
+            prompt: prompt,
+            options: options,
+            correctAnswer: correctString,
+            numericValues: [
+                "r1": Double(r1),
+                "r2": Double(r2),
+                "total": Double(total),
+                "findLarger": findLarger ? 1.0 : 0.0,
+                "correct": Double(correctVal)
+            ]
+        )
+    }
+    
+    private static func generateParabolaVerticesQuestion(difficulty: AppDifficulty, language: AppLanguage) -> Question {
+        let h = Int.random(in: -4...4)
+        let k = Int.random(in: -3...5)
+        
+        let b = -2 * h
+        let c = h * h + k
+        
+        let findY = Bool.random()
+        let correctVal = findY ? k : h
+        
+        let correctString = "\(correctVal)"
+        let distractors = ["\(correctVal + 2)", "\(correctVal - 3)", "\(correctVal == h ? k : h)"].filter { $0 != correctString }
+        let options = shuffleOptions(correct: correctString, distractors: distractors)
+        
+        let equationStr = "y = x² " + (b >= 0 ? "+ \(b)" : "- \(-b)") + "x " + (c >= 0 ? "+ \(c)" : "- \(-c)")
+        let prompt: String
+        if language == .tr {
+            let coordName = findY ? "y-koordinatını (k)" : "x-koordinatını (h)"
+            prompt = "\(equationStr) parabolünün tepe noktasının (T) \(coordName) bulun."
+        } else {
+            let coordName = findY ? "y-coordinate (k)" : "x-coordinate (h)"
+            prompt = "Find the \(coordName) of the vertex of the parabola \(equationStr)."
+        }
+        
+        return Question(
+            type: .parabolaVertices,
+            prompt: prompt,
+            options: options,
+            correctAnswer: correctString,
+            numericValues: [
+                "h": Double(h),
+                "k": Double(k),
+                "b": Double(b),
+                "c": Double(c),
+                "findY": findY ? 1.0 : 0.0
+            ]
+        )
+    }
+    
+    private static func generateLogarithmBasicsQuestion(difficulty: AppDifficulty, language: AppLanguage) -> Question {
+        let base = [2, 3, 5].randomElement() ?? 2
+        let c = Int.random(in: 2...3)
+        
+        let powerVal = Int(pow(Double(base), Double(c)))
+        let a = [1, 2].randomElement() ?? 1
+        
+        let x = Int.random(in: 3...15)
+        let b = a * x - powerVal
+        
+        let correctString = "\(x)"
+        let distractors = ["\(x + 2)", "\(x - 1)", "\(base + c)"].filter { $0 != correctString }
+        let options = shuffleOptions(correct: correctString, distractors: distractors)
+        
+        let argStr = (a == 1 ? "x" : "\(a)x") + (b >= 0 ? " - \(b)" : " + \(-b)")
+        let equationStr = "log_\(base)(\(argStr)) = \(c)"
+        
+        let prompt = language == .tr ?
+            "Logaritmik denklemdeki bilinmeyen x değerini çözün: \(equationStr)" :
+            "Solve for x in the logarithmic equation: \(equationStr)"
+        
+        return Question(
+            type: .logarithmBasics,
+            prompt: prompt,
+            options: options,
+            correctAnswer: correctString,
+            numericValues: [
+                "base": Double(base),
+                "c": Double(c),
+                "a": Double(a),
+                "b": Double(b),
+                "x": Double(x)
+            ]
+        )
+    }
+    
+    private static func generateTransformationsQuestion(difficulty: AppDifficulty, language: AppLanguage) -> Question {
+        let px = Int.random(in: -5...5)
+        let py = Int.random(in: -5...5)
+        
+        let reflectionType = Int.random(in: 0...2)
+        let dx = Int.random(in: -3...3)
+        let dy = Int.random(in: -3...3)
+        
+        let rx: Int
+        let ry: Int
+        let reflectStr: String
+        let reflectStrTr: String
+        
+        switch reflectionType {
+        case 0:
+            rx = px
+            ry = -py
+            reflectStr = "reflected across the x-axis"
+            reflectStrTr = "x-eksenine göre yansıtılıyor"
+        case 1:
+            rx = -px
+            ry = py
+            reflectStr = "reflected across the y-axis"
+            reflectStrTr = "y-eksenine göre yansıtılıyor"
+        default:
+            rx = -px
+            ry = -py
+            reflectStr = "reflected across the origin"
+            reflectStrTr = "orijine göre yansıtılıyor"
+        }
+        
+        let fx = rx + dx
+        let fy = ry + dy
+        
+        let correctString = "(\(fx), \(fy))"
+        let distractors = ["(\(-fx), \(fy))", "(\(fx), \(-fy))", "(\(px + dx), \(py + dy))"].filter { $0 != correctString }
+        let options = shuffleOptions(correct: correctString, distractors: distractors)
+        
+        let translateStr = "translated by (\(dx >= 0 ? "+\(dx)" : "\(dx)"), \(dy >= 0 ? "+\(dy)" : "\(dy)")"
+        let translateStrTr = "(\(dx >= 0 ? "+\(dx)" : "\(dx)"), \(dy >= 0 ? "+\(dy)" : "\(dy)") öteleniyor"
+        
+        let prompt = language == .tr ?
+            "P(\(px), \(py)) noktası \(reflectStrTr) ve ardından \(translateStrTr). Son koordinatları bulun." :
+            "Point P(\(px), \(py)) is \(reflectStr) and then \(translateStr). Find its final coordinates."
+        
+        return Question(
+            type: .transformations,
+            prompt: prompt,
+            options: options,
+            correctAnswer: correctString,
+            numericValues: [
+                "px": Double(px),
+                "py": Double(py),
+                "reflectionType": Double(reflectionType),
+                "dx": Double(dx),
+                "dy": Double(dy),
+                "fx": Double(fx),
+                "fy": Double(fy)
             ]
         )
     }

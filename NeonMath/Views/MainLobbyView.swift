@@ -436,46 +436,66 @@ struct SettingsRulesDetailView: View {
             
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
-                    // 1. Geometry Section
+                    // 1. MAT-1 Section
                     SubjectCardView(
-                        title: Localizer.string(forKey: "geom_title", lang: language),
+                        title: language == .tr ? "MAT-1 MÜFREDATI" : "MAT-1 CURRICULUM",
                         color: Color(hex: "#00F0FF"),
-                        icon: "triangle.fill",
-                        description: Localizer.string(forKey: "geom_desc", lang: language),
-                        topics: [
-                            Localizer.string(forKey: "geom_t1", lang: language),
-                            Localizer.string(forKey: "geom_t2", lang: language),
-                            Localizer.string(forKey: "geom_t3", lang: language),
-                            Localizer.string(forKey: "geom_t4", lang: language),
-                            Localizer.string(forKey: "geom_t5", lang: language),
-                            Localizer.string(forKey: "geom_t6", lang: language)
+                        icon: "1.circle.fill",
+                        description: language == .tr ? "Temel Matematik, mantık, kümeler ve oran-orantı konularında uzmanlaşın." : "Master basic algebra, logic, set theory, and ratios.",
+                        topics: language == .tr ? [
+                            "Temel Aritmetik (Sayı Matrisi Bulmacaları)",
+                            "Örüntüler (Köşe Değer Dizi IQ Bulmacaları)",
+                            "Venn Şemaları (Kümeler Kesme & Birleşim)",
+                            "Sembolik Mantık (p, q Doğruluk Değerleri)",
+                            "Oran & Orantı (Neon Çizgi Bölüm Hesapları)"
+                        ] : [
+                            "Basic Arithmetic (Matrix Grid Puzzles)",
+                            "Sequences (Vertex Arithmetic Challenges)",
+                            "Venn Diagrams (Set Intersection & Union)",
+                            "Symbolic Logic (p, q Truth Value Equations)",
+                            "Ratios & Proportions (Segment Partitioning)"
                         ]
                     )
                     
-                    // 2. Algebra Section
+                    // 2. MAT-2 Section
                     SubjectCardView(
-                        title: Localizer.string(forKey: "alge_title", lang: language),
+                        title: language == .tr ? "MAT-2 MÜFREDATI" : "MAT-2 CURRICULUM",
                         color: Color(hex: "#39FF14"),
-                        icon: "function",
-                        description: Localizer.string(forKey: "alge_desc", lang: language),
-                        topics: [
-                            Localizer.string(forKey: "alge_t1", lang: language),
-                            Localizer.string(forKey: "alge_t2", lang: language),
-                            Localizer.string(forKey: "alge_t3", lang: language),
-                            Localizer.string(forKey: "alge_t4", lang: language)
+                        icon: "2.circle.fill",
+                        description: language == .tr ? "İleri cebir, trigonometri, logaritma ve vektör konularını test edin." : "Test your skills in advanced algebra, trigonometry, logarithms, and vectors.",
+                        topics: language == .tr ? [
+                            "Fonksiyon Grafikleri (Lineer & Kuadratik)",
+                            "Parabol Tepe Noktaları (T(h, k) Koordinatları)",
+                            "Birim Çember Trigonometrisi (Açı Değerleri)",
+                            "Logaritma Temelleri (Denklem Çözümleri)",
+                            "2B Vektörler (Büyüklük & Nokta Çarpım)"
+                        ] : [
+                            "Function Graphs (Linear & Quadratic equations)",
+                            "Parabola Vertices (T(h, k) Coordinates)",
+                            "Unit Circle Trigonometry (sin/cos/tan ratios)",
+                            "Logarithm Basics (Logarithmic equations)",
+                            "2D Vectors (Magnitude & Dot Product)"
                         ]
                     )
                     
-                    // 3. Trigonometry Section
+                    // 3. GEOMETRİ Section
                     SubjectCardView(
-                        title: Localizer.string(forKey: "trig_title", lang: language),
+                        title: language == .tr ? "GEOMETRİ MÜFREDATI" : "GEOMETRY CURRICULUM",
                         color: Color(hex: "#BD00FF"),
-                        icon: "circle.circle.fill",
-                        description: Localizer.string(forKey: "trig_desc", lang: language),
-                        topics: [
-                            Localizer.string(forKey: "trig_t1", lang: language),
-                            Localizer.string(forKey: "trig_t2", lang: language),
-                            Localizer.string(forKey: "trig_t3", lang: language)
+                        icon: "triangle.fill",
+                        description: language == .tr ? "Doğru ve üçgen açılarından, çember teorem ve koordinat yansımalarına uzanın." : "Study angles, right triangle rules, circle theorems, and transformations.",
+                        topics: language == .tr ? [
+                            "Doğruda Açılar (Kesen & Paralel Doğrular)",
+                            "Üçgende Açılar (İç Açı Toplam Hesapları)",
+                            "Pisagor Üçlüleri (Dik Üçgen Kenar Bulma)",
+                            "Çember Teoremleri (Teğet & Çevre Açı)",
+                            "Koordinat Dönüşümleri (Yansıma & Öteleme)"
+                        ] : [
+                            "Lines & Angles (Parallel Transversals)",
+                            "Triangle Angles (180° Interior Calculations)",
+                            "Pythagorean Triplets (Right Triangle Sides)",
+                            "Circle Theorems (Inscribed & Tangent angles)",
+                            "Coordinate Transformations (Reflection & Translation)"
                         ]
                     )
                     

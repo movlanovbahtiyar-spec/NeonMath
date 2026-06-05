@@ -47,6 +47,20 @@ public struct CanvasDrawView: View {
                 drawFunctionGraph(context: context, size: size, strokeStyle: strokeStyle)
             case .matrixGrid:
                 drawMatrixGrid(context: context, size: size, strokeStyle: strokeStyle)
+                
+            // New Categories
+            case .vennDiagrams:
+                drawVennDiagrams(context: context, size: size, strokeStyle: strokeStyle)
+            case .logic:
+                drawLogic(context: context, size: size, strokeStyle: strokeStyle)
+            case .ratios:
+                drawRatios(context: context, size: size, strokeStyle: strokeStyle)
+            case .parabolaVertices:
+                drawParabolaVertices(context: context, size: size, strokeStyle: strokeStyle)
+            case .logarithmBasics:
+                drawLogarithmBasics(context: context, size: size, strokeStyle: strokeStyle)
+            case .transformations:
+                drawTransformations(context: context, size: size, strokeStyle: strokeStyle)
             }
         }
         .frame(height: 280)
@@ -921,5 +935,215 @@ public struct CanvasDrawView: View {
             labelOffset: 36
         )
         drawLabel(context: context, text: text, at: labelPos)
+    }
+    
+    // MARK: - New Sub-category Drawing Renderers
+    
+    private func drawVennDiagrams(context: GraphicsContext, size: CGSize, strokeStyle: StrokeStyle) {
+        let a = Int(question.numericValues["a"] ?? 15.0)
+        let b = Int(question.numericValues["b"] ?? 18.0)
+        let inter = Int(question.numericValues["intersection"] ?? 5.0)
+        
+        let cx = size.width / 2.0
+        let cy = size.height / 2.0
+        
+        let r: CGFloat = 50.0
+        let leftCenter = CGPoint(x: cx - 30, y: cy)
+        let rightCenter = CGPoint(x: cx + 30, y: cy)
+        
+        // Draw circles
+        var leftPath = Path()
+        leftPath.addEllipse(in: CGRect(x: leftCenter.x - r, y: leftCenter.y - r, width: r*2, height: r*2))
+        strokeGlowPath(leftPath, in: context, style: strokeStyle, color: glowColor)
+        
+        var rightPath = Path()
+        rightPath.addEllipse(in: CGRect(x: rightCenter.x - r, y: rightCenter.y - r, width: r*2, height: r*2))
+        strokeGlowPath(rightPath, in: context, style: strokeStyle, color: Color(hex: "#BD00FF"))
+        
+        // Draw labels A and B
+        drawLabel(context: context, text: "A", at: CGPoint(x: leftCenter.x - r, y: leftCenter.y - r - 10))
+        drawLabel(context: context, text: "B", at: CGPoint(x: rightCenter.x + r - 10, y: rightCenter.y - r - 10))
+        
+        // Draw cardinalities
+        drawLabel(context: context, text: "\(a - inter)", at: CGPoint(x: leftCenter.x - 20, y: leftCenter.y))
+        drawLabel(context: context, text: "\(inter)", at: CGPoint(x: cx, y: cy))
+        drawLabel(context: context, text: "\(b - inter)", at: CGPoint(x: rightCenter.x + 20, y: rightCenter.y))
+    }
+    
+    private func drawLogic(context: GraphicsContext, size: CGSize, strokeStyle: StrokeStyle) {
+        let p = Int(question.numericValues["p"] ?? 0.0)
+        let q = Int(question.numericValues["q"] ?? 1.0)
+        
+        let cx = size.width / 2.0
+        let cy = size.height / 2.0
+        
+        let hudRect = CGRect(x: cx - 110, y: cy - 65, width: 220, height: 130)
+        let hudPath = Path(roundedRect: hudRect, cornerRadius: 16)
+        context.stroke(hudPath, with: .color(glowColor.opacity(0.3)), lineWidth: 1.5)
+        
+        drawLabel(context: context, text: "INPUTS:", at: CGPoint(x: cx - 90, y: cy - 45))
+        drawLabel(context: context, text: "p = \(p)", at: CGPoint(x: cx - 90, y: cy - 15))
+        drawLabel(context: context, text: "q = \(q)", at: CGPoint(x: cx - 90, y: cy + 15))
+        
+        var gatePath = Path()
+        let gx = cx + 30
+        let gy = cy
+        gatePath.move(to: CGPoint(x: gx - 20, y: gy - 20))
+        gatePath.addQuadCurve(to: CGPoint(x: gx - 20, y: gy + 20), control: CGPoint(x: gx - 12, y: gy))
+        gatePath.addQuadCurve(to: CGPoint(x: gx + 20, y: gy), control: CGPoint(x: gx + 5, y: gy + 18))
+        gatePath.addQuadCurve(to: CGPoint(x: gx - 20, y: gy - 20), control: CGPoint(x: gx + 5, y: gy - 18))
+        strokeGlowPath(gatePath, in: context, style: strokeStyle, color: Color(hex: "#BD00FF"))
+        
+        drawLabel(context: context, text: "OUT: ?", at: CGPoint(x: gx + 45, y: gy))
+    }
+    
+    private func drawRatios(context: GraphicsContext, size: CGSize, strokeStyle: StrokeStyle) {
+        let r1 = question.numericValues["r1"] ?? 3.0
+        let r2 = question.numericValues["r2"] ?? 5.0
+        let total = question.numericValues["total"] ?? 80.0
+        let findLarger = question.numericValues["findLarger"] ?? 1.0
+        
+        let cx = size.width / 2.0
+        let cy = size.height / 2.0
+        
+        let w: CGFloat = 180.0
+        let h: CGFloat = 16.0
+        let startX = cx - w / 2.0
+        
+        let ratioSplit = CGFloat(r1 / (r1 + r2))
+        let splitX = startX + w * ratioSplit
+        
+        let leftRect = CGRect(x: startX, y: cy - h/2.0, width: w * ratioSplit, height: h)
+        let leftPath = Path(roundedRect: leftRect, cornerRadius: 4)
+        context.fill(leftPath, with: .color(glowColor.opacity(0.15)))
+        context.stroke(leftPath, with: .color(glowColor), lineWidth: 2.0)
+        
+        let rightRect = CGRect(x: splitX, y: cy - h/2.0, width: w * (1 - ratioSplit), height: h)
+        let rightPath = Path(roundedRect: rightRect, cornerRadius: 4)
+        context.fill(rightPath, with: .color(Color(hex: "#BD00FF").opacity(0.15)))
+        context.stroke(rightPath, with: .color(Color(hex: "#BD00FF")), lineWidth: 2.0)
+        
+        drawLabel(context: context, text: findLarger == 0 ? "?" : "\(Int(r1))k", at: CGPoint(x: startX + (w * ratioSplit)/2.0, y: cy - 25))
+        drawLabel(context: context, text: findLarger == 1 ? "?" : "\(Int(r2))k", at: CGPoint(x: splitX + (w * (1 - ratioSplit))/2.0, y: cy - 25))
+        
+        drawLabel(context: context, text: "TOTAL = \(Int(total))", at: CGPoint(x: cx, y: cy + 25))
+    }
+    
+    private func drawParabolaVertices(context: GraphicsContext, size: CGSize, strokeStyle: StrokeStyle) {
+        let h = question.numericValues["h"] ?? 2.0
+        let k = question.numericValues["k"] ?? 3.0
+        
+        let cx = size.width / 2.0
+        let cy = size.height / 2.0
+        
+        var axes = Path()
+        axes.move(to: CGPoint(x: cx - 100, y: cy))
+        axes.addLine(to: CGPoint(x: cx + 100, y: cy))
+        axes.move(to: CGPoint(x: cx, y: cy - 80))
+        axes.addLine(to: CGPoint(x: cx, y: cy + 80))
+        context.stroke(axes, with: .color(.white.opacity(0.25)), lineWidth: 1.5)
+        
+        let scale: CGFloat = 12.0
+        let vertexPt = CGPoint(x: cx + CGFloat(h) * scale, y: cy - CGFloat(k) * scale)
+        
+        var curve = Path()
+        var first = true
+        for dxVal in stride(from: -3.5, through: 3.5, by: 0.1) {
+            let px = h + dxVal
+            let py = (px - h) * (px - h) + k
+            
+            let screenX = cx + CGFloat(px) * scale
+            let screenY = cy - CGFloat(py) * scale
+            
+            if screenY >= cy - 85 && screenY <= cy + 85 {
+                if first {
+                    curve.move(to: CGPoint(x: screenX, y: screenY))
+                    first = false
+                } else {
+                    curve.addLine(to: CGPoint(x: screenX, y: screenY))
+                }
+            }
+        }
+        strokeGlowPath(curve, in: context, style: strokeStyle, color: glowColor)
+        
+        var dot = Path()
+        dot.addEllipse(in: CGRect(x: vertexPt.x - 5, y: vertexPt.y - 5, width: 10, height: 10))
+        context.fill(dot, with: .color(Color(hex: "#BD00FF")))
+        
+        var projection = Path()
+        projection.move(to: vertexPt)
+        projection.addLine(to: CGPoint(x: vertexPt.x, y: cy))
+        projection.move(to: vertexPt)
+        projection.addLine(to: CGPoint(x: cx, y: vertexPt.y))
+        context.stroke(projection, with: .color(.white.opacity(0.35)), style: StrokeStyle(lineWidth: 1.0, dash: [4, 4]))
+        
+        drawLabel(context: context, text: "T", at: CGPoint(x: vertexPt.x, y: vertexPt.y - 16))
+    }
+    
+    private func drawLogarithmBasics(context: GraphicsContext, size: CGSize, strokeStyle: StrokeStyle) {
+        let cx = size.width / 2.0
+        let cy = size.height / 2.0
+        
+        var axes = Path()
+        axes.move(to: CGPoint(x: cx - 100, y: cy + 40))
+        axes.addLine(to: CGPoint(x: cx + 100, y: cy + 40))
+        axes.move(to: CGPoint(x: cx - 60, y: cy - 70))
+        axes.addLine(to: CGPoint(x: cx - 60, y: cy + 70))
+        context.stroke(axes, with: .color(.white.opacity(0.25)), lineWidth: 1.5)
+        
+        var curve = Path()
+        let startX = cx - 55
+        let endX = cx + 80
+        curve.move(to: CGPoint(x: startX, y: cy + 60))
+        for xVal in stride(from: Double(startX), through: Double(endX), by: 2.0) {
+            let dxVal = xVal - Double(cx - 60)
+            let logY = log(dxVal / 15.0) * 25.0
+            let screenY = cy + 40 - CGFloat(logY)
+            if screenY > cy - 80 && screenY < cy + 80 {
+                curve.addLine(to: CGPoint(x: CGFloat(xVal), y: screenY))
+            }
+        }
+        strokeGlowPath(curve, in: context, style: strokeStyle, color: Color(hex: "#BD00FF"))
+        
+        drawLabel(context: context, text: "y = log_b(x)", at: CGPoint(x: cx + 30, y: cy - 40))
+    }
+    
+    private func drawTransformations(context: GraphicsContext, size: CGSize, strokeStyle: StrokeStyle) {
+        let px = question.numericValues["px"] ?? 2.0
+        let py = question.numericValues["py"] ?? 3.0
+        let fx = question.numericValues["fx"] ?? -2.0
+        let fy = question.numericValues["fy"] ?? 1.0
+        
+        let cx = size.width / 2.0
+        let cy = size.height / 2.0
+        
+        let scale: CGFloat = 12.0
+        
+        var axes = Path()
+        axes.move(to: CGPoint(x: cx - 90, y: cy))
+        axes.addLine(to: CGPoint(x: cx + 90, y: cy))
+        axes.move(to: CGPoint(x: cx, y: cy - 70))
+        axes.addLine(to: CGPoint(x: cx, y: cy + 70))
+        context.stroke(axes, with: .color(.white.opacity(0.25)), lineWidth: 1.5)
+        
+        let ptP = CGPoint(x: cx + CGFloat(px) * scale, y: cy - CGFloat(py) * scale)
+        let ptF = CGPoint(x: cx + CGFloat(fx) * scale, y: cy - CGFloat(fy) * scale)
+        
+        var pathP = Path()
+        pathP.addEllipse(in: CGRect(x: ptP.x - 4.5, y: ptP.y - 4.5, width: 9, height: 9))
+        context.fill(pathP, with: .color(glowColor))
+        context.stroke(pathP, with: .color(glowColor.opacity(0.5)), lineWidth: 2.0)
+        drawLabel(context: context, text: "P(\(Int(px)),\(Int(py)))", at: CGPoint(x: ptP.x + 10, y: ptP.y - 12))
+        
+        var pathF = Path()
+        pathF.addEllipse(in: CGRect(x: ptF.x - 4.5, y: ptF.y - 4.5, width: 9, height: 9))
+        context.fill(pathF, with: .color(Color(hex: "#BD00FF")))
+        context.stroke(pathF, with: .color(Color(hex: "#BD00FF").opacity(0.5)), lineWidth: 2.0)
+        drawLabel(context: context, text: "P' = ?", at: CGPoint(x: ptF.x - 10, y: ptF.y + 12))
+        
+        var arrow = Path()
+        arrow.move(to: ptP)
+        arrow.addLine(to: ptF)
+        context.stroke(arrow, with: .color(.white.opacity(0.4)), style: StrokeStyle(lineWidth: 1.5, dash: [4, 4]))
     }
 }
