@@ -1,80 +1,44 @@
-//
-//  ContentView.swift
-//  NeonMath
-//
-//  Created by Bahtiyar  on 5.06.2026.
-//
-
 import SwiftUI
-import SwiftData
 
-struct ContentView: View {
-    @Environment(\.modelContext) private var modelContext
-    @Query private var items: [Item]
-
-    var body: some View {
-        NavigationViewWrapper {
-            List {
-                ForEach(items) { item in
-                    NavigationLink {
-                        Text("Item at \(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))")
-                    } label: {
-                        Text(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))
-                    }
-                }
-                .onDelete(perform: deleteItems)
-            }
-#if os(macOS)
-            .navigationSplitViewColumnWidth(min: 180, ideal: 200)
-#endif
-            .toolbar {
-#if os(iOS)
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    EditButton()
-                }
-#endif
-                ToolbarItem {
-                    Button(action: addItem) {
-                        Label("Add Item", systemImage: "plus")
-                    }
-                }
-            }
-        }
-    }
-
-    private func addItem() {
-        withAnimation {
-            let newItem = Item(timestamp: Date())
-            modelContext.insert(newItem)
-        }
-    }
-
-    private func deleteItems(offsets: IndexSet) {
-        withAnimation {
-            for index in offsets {
-                modelContext.delete(items[index])
+/// The root entry view for Neon Geometry.
+/// Observes the GameViewModel's state and uses fluid spring-based transitions between screens.
+public struct ContentView: View {
+    @State private var viewModel = GameViewModel()
+    
+    public init() {}
+    
+    public var body: some View {
+        ZStack {
+            Color.black.ignoresSafeArea()
+            
+            switch viewModel.gameState {
+            case .lobby:
+                MainLobbyView(viewModel: viewModel)
+                    .transition(
+                        .opacity
+                        .combined(with: .scale(scale: 0.96))
+                    )
+            case .playing:
+                GamePlayView(viewModel: viewModel)
+                    .transition(
+                        .opacity
+                        .combined(with: .scale(scale: 1.04))
+                    )
+            case let .gameOver(finalScore, correctAnswers, totalQuestions):
+                GameOverView(
+                    viewModel: viewModel,
+                    finalScore: finalScore,
+                    correctAnswers: correctAnswers,
+                    totalQuestions: totalQuestions
+                )
+                .transition(
+                    .opacity
+                    .combined(with: .scale(scale: 0.96))
+                )
             }
         }
+        .preferredColorScheme(.dark)
+        // High-end spring transitions adhering strictly to styling specifications
+        .animation(.spring(response: 0.4, dampingFraction: 0.75), value: viewModel.gameState)
     }
-}
-
-fileprivate struct NavigationViewWrapper<Content: View>: View {
-    let content: () -> Content
-
-    var body: some View {
-#if os(macOS)
-        NavigationSplitView {
-            content()
-        } detail: {
-            Text("Select an item")
-        }
-#else
-        content()
-#endif
-    }
-}
-
-#Preview {
-    ContentView()
-        .modelContainer(for: Item.self, inMemory: true)
 }

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terms of Service - Neon Math</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #0A0A0C;
+            color: #E2E8F0;
+            line-height: 1.6;
+            padding: 40px 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #00F0FF;
+            border-bottom: 1px solid #1E293B;
+            padding-bottom: 10px;
+            font-weight: 800;
+        }
+        h2 {
+            color: #BD00FF;
+            margin-top: 30px;
+            font-weight: 700;
+        }
+        p, li {
+            color: #94A3B8;
+        }
+        .lang-switch {
+            text-align: right;
+            margin-bottom: 20px;
+        }
+        .lang-btn {
+            background: #1E293B;
+            color: #00F0FF;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="lang-switch">
+        <button class="lang-btn" onclick="toggleLanguage()">TR / EN</button>
+    </div>
+
+    <div id="lang-en">
+        <h1>Terms of Service</h1>
+        <p><strong>Last Updated: June 5, 2026</strong></p>
+        <p>Welcome to Neon Math. By accessing or playing our game, you agree to comply with and be bound by the following terms of service.</p>
+
+        <h2>1. Game Play & Mechanics</h2>
+        <p>Neon Math provides procedurally generated mathematical, algebraic, and trigonometric challenges. Gameplay involves a countdown timer where correct answers reward points and add time, and incorrect answers deduct time. You agree to play the game in a fair manner without modifying local memory or code.</p>
+
+        <h2>2. Data Ownership & Storage</h2>
+        <p>All score records, high score statistics, correct answer counts, and player profile names are stored locally on your device via UserDefaults. We do not transmit or collect this data on external servers. Clearing app data or uninstalling the app will permanently delete your stats.</p>
+
+        <h2>3. Intellectual Property</h2>
+        <p>The visual style, neon glowing line shaders, programmatic canvas draw mechanisms, and game source code are the intellectual property of the developer. You may not distribute, decompile, or copy components of this software without explicit permission.</p>
+
+        <h2>4. Disclaimer of Warranties</h2>
+        <p>The application is provided "as is", without warranty of any kind, express or implied. In no event shall the authors or copyright holders be liable for any claim, damages, or other liability arising from the use of the game.</p>
+    </div>
+
+    <div id="lang-tr" style="display: none;">
+        <h1>Kullanım Koşulları</h1>
+        <p><strong>Son Güncelleme: 5 Haziran 2026</strong></p>
+        <p>Neon Math'e hoş geldiniz. Oyunumuzu oynayarak veya erişerek, aşağıdaki kullanım koşullarına uymayı kabul etmiş olursunuz.</p>
+
+        <h2>1. Oyun Oynanışı ve Mekanikleri</h2>
+        <p>Neon Math; prosedürel olarak üretilen geometrik, cebirsel ve trigonometrik bulmacalar sunar. Oynanış süreli olup doğru cevaplar puan kazandırır ve süre ekler; yanlış cevaplar ise süreyi düşürür. Oyunu local hafızayı veya kodları manipüle etmeden, adil bir şekilde oynamayı kabul edersiniz.</p>
+
+        <h2>2. Veri Sahipliği ve Saklanması</h2>
+        <p>Tüm skor rekorları, doğru çözme oranları ve kullanıcı adı bilgileri cihazınız üzerinde yerel (UserDefaults) olarak saklanır. Bu verileri harici sunuculara göndermeyiz veya toplamayız. Uygulama verilerinin silinmesi veya uygulamanın kaldırılması verileri kalıcı olarak silecektir.</p>
+
+        <h2>3. Fikri Mülkiyet</h2>
+        <p>Arayüz tasarımı, neon çizim motoru shaderları ve oyunun kaynak kodları geliştiricinin fikri mülkiyetidir. Yazılımın bileşenlerini izinsiz olarak dağıtamaz, tersine mühendislik yapamaz veya kopyalayamazsınız.</p>
+
+        <h2>4. Sorumluluk Sınırlandırması</h2>
+        <p>Uygulama "olduğu gibi" sunulmaktadır ve herhangi bir garanti verilmemektedir. Geliştiriciler, oyunun kullanımından kaynaklanabilecek hiçbir iddia veya zarardan sorumlu tutulamaz.</p>
+    </div>
+
+    <script>
+        function toggleLanguage() {
+            var enDiv = document.getElementById('lang-en');
+            var trDiv = document.getElementById('lang-tr');
+            if (enDiv.style.display === 'none') {
+                enDiv.style.display = 'block';
+                trDiv.style.display = 'none';
+            } else {
+                enDiv.style.display = 'none';
+                trDiv.style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>
