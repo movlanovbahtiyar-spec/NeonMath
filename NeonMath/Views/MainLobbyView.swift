@@ -128,48 +128,34 @@ public struct MainLobbyView: View {
                 
                 Spacer()
                 
-                // MARK: - Curriculum Selector Capsule
+                // MARK: - Curriculum Selector Capsule (4 segments)
                 HStack(spacing: 0) {
-                    Button(action: {
-                        HapticFeedbackManager.shared.playSoftImpact()
-                        viewModel.updateCurriculumTrack(.mat1)
-                    }) {
-                        Text("MAT-1")
-                            .font(.system(size: 12, weight: .black))
-                            .tracking(1.5)
-                            .foregroundColor(viewModel.userProfile.selectedTrack == .mat1 ? .black : .white.opacity(0.6))
-                            .padding(.vertical, 10)
-                            .frame(maxWidth: .infinity)
-                            .background(
-                                RoundedRectangle(cornerRadius: 18)
-                                    .fill(viewModel.userProfile.selectedTrack == .mat1 ? Color.white : Color.clear)
-                            )
-                    }
-                    
-                    Button(action: {
-                        HapticFeedbackManager.shared.playSoftImpact()
-                        viewModel.updateCurriculumTrack(.mat2)
-                    }) {
-                        Text("MAT-2")
-                            .font(.system(size: 12, weight: .black))
-                            .tracking(1.5)
-                            .foregroundColor(viewModel.userProfile.selectedTrack == .mat2 ? .black : .white.opacity(0.6))
-                            .padding(.vertical, 10)
-                            .frame(maxWidth: .infinity)
-                            .background(
-                                RoundedRectangle(cornerRadius: 18)
-                                    .fill(viewModel.userProfile.selectedTrack == .mat2 ? Color.white : Color.clear)
-                            )
+                    ForEach(CurriculumTrack.allCases, id: \.self) { track in
+                        Button(action: {
+                            HapticFeedbackManager.shared.playSoftImpact()
+                            viewModel.updateCurriculumTrack(track)
+                        }) {
+                            Text(trackTitle(track, lang: lang))
+                                .font(.system(size: 10, weight: .black))
+                                .tracking(0.5)
+                                .foregroundColor(viewModel.userProfile.selectedTrack == track ? .black : .white.opacity(0.6))
+                                .padding(.vertical, 10)
+                                .frame(maxWidth: .infinity)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 15)
+                                        .fill(viewModel.userProfile.selectedTrack == track ? Color.white : Color.clear)
+                                )
+                        }
                     }
                 }
                 .padding(3)
                 .background(Color.white.opacity(0.06))
-                .cornerRadius(21)
+                .cornerRadius(18)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 21)
+                    RoundedRectangle(cornerRadius: 18)
                         .stroke(Color.white.opacity(0.1), lineWidth: 1)
                 )
-                .padding(.horizontal, 48)
+                .padding(.horizontal, 16)
                 .padding(.bottom, 16)
                 
                 // Active Curriculum Badge Details
@@ -180,21 +166,12 @@ public struct MainLobbyView: View {
                         .shadow(color: pilotRank.color, radius: 3)
                     
                     let track = viewModel.userProfile.selectedTrack
-                    if lang == .tr {
-                        Text(track == .mat1 ? "MAT-1 MÜFREDATI AKTİF • GEOMETRİ & CEBİR" : "MAT-2 MÜFREDATI AKTİF • TRİGONOMETRİ & VEKTÖR")
-                            .font(.system(size: 9, weight: .bold))
-                            .foregroundColor(.white.opacity(0.3))
-                            .tracking(1.5)
-                            .minimumScaleFactor(0.7)
-                            .lineLimit(1)
-                    } else {
-                        Text(track == .mat1 ? "MAT-1 CURRICULUM ACTIVE • GEOMETRY & ALGEBRA" : "MAT-2 CURRICULUM ACTIVE • TRIGONOMETRY & VECTORS")
-                            .font(.system(size: 9, weight: .bold))
-                            .foregroundColor(.white.opacity(0.3))
-                            .tracking(1.5)
-                            .minimumScaleFactor(0.7)
-                            .lineLimit(1)
-                    }
+                    Text(trackDescription(track, lang: lang))
+                        .font(.system(size: 9, weight: .bold))
+                        .foregroundColor(.white.opacity(0.3))
+                        .tracking(1.5)
+                        .minimumScaleFactor(0.7)
+                        .lineLimit(1)
                 }
                 .padding(.bottom, 24)
                 .padding(.horizontal, 24)
@@ -236,6 +213,45 @@ public struct MainLobbyView: View {
         }
         .sheet(isPresented: $showSettings) {
             SettingsView(viewModel: viewModel, pilotColor: pilotRank.color)
+        }
+    }
+    
+    private func trackTitle(_ track: CurriculumTrack, lang: AppLanguage) -> String {
+        switch track {
+        case .mat1:
+            return "MAT-1"
+        case .mat2:
+            return "MAT-2"
+        case .geometry:
+            return lang == .tr ? "GEOMETRİ" : "GEOMETRY"
+        case .mix:
+            return lang == .tr ? "MİX" : "MIX"
+        }
+    }
+    
+    private func trackDescription(_ track: CurriculumTrack, lang: AppLanguage) -> String {
+        if lang == .tr {
+            switch track {
+            case .mat1:
+                return "MAT-1 MÜFREDATI AKTİF • GEOMETRİ & TEMEL CEBİR"
+            case .mat2:
+                return "MAT-2 MÜFREDATI AKTİF • TRİGONOMETRİ & İLERİ CEBİR"
+            case .geometry:
+                return "GEOMETRİ MÜFREDATI AKTİF • TÜM GEOMETRİ KONULARI"
+            case .mix:
+                return "KARIŞIK MÜFREDAT AKTİF • TÜM KONULAR"
+            }
+        } else {
+            switch track {
+            case .mat1:
+                return "MAT-1 CURRICULUM ACTIVE • GEOMETRY & ALGEBRA"
+            case .mat2:
+                return "MAT-2 CURRICULUM ACTIVE • TRIGONOMETRY & VECTORS"
+            case .geometry:
+                return "GEOMETRY CURRICULUM ACTIVE • ALL GEOMETRIC TOPICS"
+            case .mix:
+                return "MIXED CURRICULUM ACTIVE • ALL TOPICS"
+            }
         }
     }
 }

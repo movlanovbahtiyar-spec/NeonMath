@@ -10,6 +10,8 @@ public enum AppLanguage: String, Codable, CaseIterable {
 public enum CurriculumTrack: String, Codable, CaseIterable {
     case mat1 = "MAT-1"
     case mat2 = "MAT-2"
+    case geometry = "GEOMETRY"
+    case mix = "MIX"
 }
 
 /// Models user gameplay history, statistics, and high scores.

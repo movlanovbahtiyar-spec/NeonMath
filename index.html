@@ -176,7 +176,7 @@
         /* Features Section */
         .features {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 30px;
             margin: 80px 0;
         }
@@ -203,7 +203,7 @@
             transition: opacity 0.3s ease;
         }
 
-        .feature-card:nth-child(2)::before {
+        .feature-card:nth-child(even)::before {
             background: var(--secondary-glow);
         }
 
@@ -424,19 +424,31 @@
             <div class="feature-card">
                 <div class="feature-icon">📐</div>
                 <h3 id="feat1-title">MAT-1 Curriculum</h3>
-                <p id="feat1-desc">Focuses on foundational math & basic geometry. Play with triangle angles, parallel transversals, supplementary angle splits, number grid matrices, and basic linear/parabolical function graphs.</p>
+                <p id="feat1-desc">Focuses on foundational math & basic geometry. Play with triangle angles, parallel transversals, supplementary angle splits, number grid matrices, and basic function graphs.</p>
             </div>
 
             <div class="feature-card">
                 <div class="feature-icon">📈</div>
                 <h3 id="feat2-title">MAT-2 Curriculum</h3>
-                <p id="feat2-desc">Dive into advanced math, trigonometry, and coordinate geometry. Test your limits with unit circle coordinates, right triangle ratios, algebraic identities, vectors, inscribed angles, and tangent lines.</p>
+                <p id="feat2-desc">Dive into advanced math, trigonometry, and vectors. Test your limits with unit circle coordinates, right triangle ratios, algebraic identities, and vector spaces.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">📐</div>
+                <h3 id="feat3-title">Geometry Curriculum</h3>
+                <p id="feat3-desc">Focuses strictly on geometric properties. Master triangle angles, parallel transversals, supplementary lines, inscribed angles, circle tangents, and vertex IQ patterns.</p>
             </div>
 
             <div class="feature-card">
                 <div class="feature-icon">⚡</div>
-                <h3 id="feat3-title">Dynamic Difficulty (DDA)</h3>
-                <p id="feat3-desc">The puzzle engine dynamically scales question difficulty as your score grows. Progress from Easy to Expert challenges in a 60-second race where every correct answer saves you time.</p>
+                <h3 id="feat4-title">Mixed Curriculum</h3>
+                <p id="feat4-desc">The ultimate challenge combining all geometry, algebra, and trigonometry topics at random.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">🔥</div>
+                <h3 id="feat5-title">Dynamic Difficulty (DDA)</h3>
+                <p id="feat5-desc">The puzzle engine dynamically scales question difficulty as your score grows. Progress from Easy to Expert challenges in a 60-second race.</p>
             </div>
         </section>
 
@@ -494,11 +506,15 @@
                 btnSupport: "Support & Contact",
                 btnGithub: "View GitHub",
                 feat1Title: "MAT-1 Curriculum",
-                feat1Desc: "Focuses on foundational math & basic geometry. Play with triangle angles, parallel transversals, supplementary angle splits, number grid matrices, and basic linear/parabolical function graphs.",
+                feat1Desc: "Focuses on foundational math & basic geometry. Play with triangle angles, parallel transversals, supplementary angle splits, number grid matrices, and basic function graphs.",
                 feat2Title: "MAT-2 Curriculum",
-                feat2Desc: "Dive into advanced math, trigonometry, and coordinate geometry. Test your limits with unit circle coordinates, right triangle ratios, algebraic identities, vectors, inscribed angles, and tangent lines.",
-                feat3Title: "Dynamic Difficulty (DDA)",
-                feat3Desc: "The puzzle engine dynamically scales question difficulty as your score grows. Progress from Easy to Expert challenges in a 60-second race where every correct answer saves you time.",
+                feat2Desc: "Dive into advanced math, trigonometry, and vectors. Test your limits with unit circle coordinates, right triangle ratios, algebraic identities, and vector spaces.",
+                feat3Title: "Geometry Curriculum",
+                feat3Desc: "Focuses strictly on geometric properties. Master triangle angles, parallel transversals, supplementary lines, inscribed angles, circle tangents, and vertex IQ patterns.",
+                feat4Title: "Mixed Curriculum",
+                feat4Desc: "The ultimate challenge combining all geometry, algebra, and trigonometry topics at random.",
+                feat5Title: "Dynamic Difficulty (DDA)",
+                feat5Desc: "The puzzle engine dynamically scales question difficulty as your score grows. Progress from Easy to Expert challenges in a 60-second race.",
                 supportTitle: "Get in Touch",
                 supportDesc: "Have a question about Neon Math? Encountered an issue in the game? Feel free to contact us. We usually respond within 24 hours.",
                 labelName: "Your Name",
@@ -516,9 +532,13 @@
                 feat1Title: "MAT-1 Müfredatı",
                 feat1Desc: "Temel matematik ve temel geometriye odaklanır. Üçgen açıları, paralel doğrular, bütünler açılar, sayı matrisleri ve temel fonksiyon grafikleri ile oynayın.",
                 feat2Title: "MAT-2 Müfredatı",
-                feat2Desc: "İleri matematik, trigonometri ve koordinat geometrisine dalın. Birim çember koordinatları, dik üçgen oranları, trigonometrik özdeşlikler, vektörler, çevre açılar ve teğet doğrularla sınırlarınızı zorlayın.",
-                feat3Title: "Dinamik Zorluk (DDA)",
-                feat3Desc: "Bulmaca motoru, skorunuz arttıkça soru zorluğunu dinamik olarak ayarlar. Doğru cevapların süre kazandırdığı 60 saniyelik bir yarışta Kolay'dan Uzman'a doğru ilerleyin.",
+                feat2Desc: "İleri matematik, trigonometri ve vektörlere dalın. Birim çember koordinatları, dik üçgen oranları, trigonometrik özdeşlikler ve vektör koordinatları ile test edin.",
+                feat3Title: "Geometri Müfredatı",
+                feat3Desc: "Sadece geometrik özelliklere odaklanır. Üçgen açıları, paralel doğrular, bütünler açılar, çevre açılar, teğet doğrular ve köşe IQ desenlerinde ustalaşın.",
+                feat4Title: "Karışık Müfredat",
+                feat4Desc: "Tüm geometri, cebir ve trigonometri konularını rastgele karıştırarak sunan en büyük meydan okuma.",
+                feat5Title: "Dinamik Zorluk (DDA)",
+                feat5Desc: "Sistem, skorunuz arttıkça soru zorluğunu dinamik olarak ayarlar. 60 saniyelik bir yarışta Kolay'dan Uzman seviyeye ilerleyin.",
                 supportTitle: "İletişime Geçin",
                 supportDesc: "Neon Math hakkında bir sorunuz mu var? Oyunda bir hata ile mi karşılaştınız? Bizimle iletişime geçebilirsiniz. Genellikle 24 saat içinde geri dönüş sağlıyoruz.",
                 labelName: "Adınız Soyadınız",
@@ -547,6 +567,10 @@
             document.getElementById('feat2-desc').innerText = t.feat2Desc;
             document.getElementById('feat3-title').innerText = t.feat3Title;
             document.getElementById('feat3-desc').innerText = t.feat3Desc;
+            document.getElementById('feat4-title').innerText = t.feat4Title;
+            document.getElementById('feat4-desc').innerText = t.feat4Desc;
+            document.getElementById('feat5-title').innerText = t.feat5Title;
+            document.getElementById('feat5-desc').innerText = t.feat5Desc;
             document.getElementById('support-title').innerText = t.supportTitle;
             document.getElementById('support-desc').innerText = t.supportDesc;
             document.getElementById('label-name').innerText = t.labelName;

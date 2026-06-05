@@ -96,11 +96,17 @@ public struct Question: Identifiable, Codable, Equatable {
         let availableTypes: [QuestionType]
         switch track {
         case .mat1:
-            // Geometry basic topics, Basic Algebra/IQ patterns
-            availableTypes = [.triangleAngle, .transversalParallel, .supplementaryLines, .matrixGrid, .functionGraph, .geometricIQPattern]
+            // Basic geometry + basic algebra/graphs
+            availableTypes = [.triangleAngle, .transversalParallel, .supplementaryLines, .matrixGrid, .functionGraph]
         case .mat2:
-            // Trigonometry, advanced coordinate math/vectors, advanced circle geometry
-            availableTypes = [.unitCircle, .triangleTrig, .trigIdentity, .vectorPuzzle, .inscribedCircleAngle, .circleTangent]
+            // Trigonometry, vectors
+            availableTypes = [.unitCircle, .triangleTrig, .trigIdentity, .vectorPuzzle]
+        case .geometry:
+            // Pure geometry
+            availableTypes = [.triangleAngle, .transversalParallel, .supplementaryLines, .inscribedCircleAngle, .circleTangent, .geometricIQPattern]
+        case .mix:
+            // All question types
+            availableTypes = QuestionType.allCases
         }
         
         let tierType = availableTypes.randomElement() ?? .triangleAngle
