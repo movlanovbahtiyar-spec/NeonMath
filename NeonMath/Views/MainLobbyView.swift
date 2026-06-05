@@ -462,19 +462,19 @@ struct SettingsRulesDetailView: View {
                         title: language == .tr ? "MAT-2 MÜFREDATI" : "MAT-2 CURRICULUM",
                         color: Color(hex: "#39FF14"),
                         icon: "2.circle.fill",
-                        description: language == .tr ? "İleri cebir, trigonometri, logaritma ve vektör konularını test edin." : "Test your skills in advanced algebra, trigonometry, logarithms, and vectors.",
+                        description: language == .tr ? "11 ve 12. sınıf AYT müfredatını kapsayan ileri düzey cebir, trigonometri, logaritma ve dizi sorularını çözün." : "Solve advanced algebra, trigonometry, logarithms, and sequence questions covering the 11th & 12th grade AYT curriculum.",
                         topics: language == .tr ? [
-                            "Fonksiyon Grafikleri (Lineer & Kuadratik)",
-                            "Parabol Tepe Noktaları (T(h, k) Koordinatları)",
-                            "Birim Çember Trigonometrisi (Açı Değerleri)",
-                            "Logaritma Temelleri (Denklem Çözümleri)",
-                            "2B Vektörler (Büyüklük & Nokta Çarpım)"
+                            "Fonksiyonlar (İleri Düzey) & Polinomlar (Grafik Ötelemeleri, Polinomda Bölme/Kalan Bulma)",
+                            "İkinci Dereceden Denklemler, Eşitsizlikler & Karmaşık Sayılar (Kökler, Diskriminant, İşaret Tablosu, Sanal Birim i)",
+                            "Trigonometri (Esas Ölçü, Teoremler, Toplam-Fark & Yarım Açı Formülleri, Trigonometrik Denklemler)",
+                            "Logaritma (Üstel Fonksiyonlar, Logaritma Özellikleri ve Denklemleri)",
+                            "Diziler (Aritmetik ve Geometrik Diziler, Seriler)"
                         ] : [
-                            "Function Graphs (Linear & Quadratic equations)",
-                            "Parabola Vertices (T(h, k) Coordinates)",
-                            "Unit Circle Trigonometry (sin/cos/tan ratios)",
-                            "Logarithm Basics (Logarithmic equations)",
-                            "2D Vectors (Magnitude & Dot Product)"
+                            "Advanced Functions & Polynomials (Graph Shifts, Polynomial Division/Remainders)",
+                            "Quadratics, Inequalities & Complex Numbers (Roots, Discriminant, Sign Tables, Imaginary Unit i)",
+                            "Trigonometry (Reference Angles, Sum-Difference & Half-Angle Formulas, Trig Equations)",
+                            "Logarithms (Exponential Functions, Logarithmic Properties & Equations)",
+                            "Sequences & Series (Arithmetic & Geometric Progressions)"
                         ]
                     )
                     

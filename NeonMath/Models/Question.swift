@@ -27,11 +27,28 @@ public enum Math1SubCategory: String, Codable, CaseIterable {
 }
 
 public enum Math2SubCategory: String, Codable, CaseIterable {
-    case functionGraphs = "Function Graphs"
-    case parabolaVertices = "Parabola Vertices"
-    case unitCircle = "Unit Circle Trigonometry"
-    case logarithmBasics = "Logarithm Basics"
-    case vectors2D = "2D Vectors"
+    case advancedFunctions = "Advanced Functions & Polynomials"
+    case quadraticsComplex = "Quadratics & Complex Numbers"
+    case trigonometry = "Advanced Trigonometry"
+    case logarithms = "Logarithms"
+    case sequencesSeries = "Sequences & Series"
+    
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let rawVal = try container.decode(String.self)
+        switch rawVal {
+        case "Function Graphs", "functionGraphs", "Parabola Vertices", "parabolaVertices":
+            self = .advancedFunctions
+        case "2D Vectors", "vectors2D":
+            self = .quadraticsComplex
+        case "Unit Circle Trigonometry", "unitCircle":
+            self = .trigonometry
+        case "Logarithm Basics", "logarithmBasics":
+            self = .logarithms
+        default:
+            self = Math2SubCategory(rawValue: rawVal) ?? .advancedFunctions
+        }
+    }
 }
 
 public enum GeometrySubCategory: String, Codable, CaseIterable {
@@ -119,6 +136,12 @@ public enum QuestionType: String, CaseIterable, Codable {
     // Math 2 New Categories
     case parabolaVertices = "Math2: Parabola Vertices"
     case logarithmBasics = "Math2: Logarithm Basics"
+    
+    case aytFunctions = "Math2: Advanced Functions"
+    case aytQuadratics = "Math2: Quadratics & Complex"
+    case aytTrig = "Math2: AYT Trigonometry"
+    case aytLog = "Math2: Logarithms"
+    case aytSequences = "Math2: Sequences & Series"
     
     // Geometry New Categories
     case transformations = "Geometry: Coordinate Transformations"
@@ -221,13 +244,13 @@ public struct Question: Identifiable, Codable, Equatable {
         case .geometricIQPattern:
             return .geometry(.transformations)
         case .unitCircle, .trigIdentity:
-            return .math2(.unitCircle)
+            return .math2(.trigonometry)
         case .triangleTrig:
             return .geometry(.pythagoreanTriplets)
         case .vectorPuzzle:
-            return .math2(.vectors2D)
+            return .math2(.quadraticsComplex)
         case .functionGraph:
-            return .math2(.functionGraphs)
+            return .math2(.advancedFunctions)
         case .matrixGrid:
             return .math1(.basicNumbers)
         case .vennDiagrams:
@@ -247,9 +270,19 @@ public struct Question: Identifiable, Codable, Equatable {
         case .tytProbability:
             return .math1(.countingProbability)
         case .parabolaVertices:
-            return .math2(.parabolaVertices)
+            return .math2(.advancedFunctions)
         case .logarithmBasics:
-            return .math2(.logarithmBasics)
+            return .math2(.logarithms)
+        case .aytFunctions:
+            return .math2(.advancedFunctions)
+        case .aytQuadratics:
+            return .math2(.quadraticsComplex)
+        case .aytTrig:
+            return .math2(.trigonometry)
+        case .aytLog:
+            return .math2(.logarithms)
+        case .aytSequences:
+            return .math2(.sequencesSeries)
         case .transformations:
             return .geometry(.transformations)
         }
@@ -287,19 +320,19 @@ public struct Question: Identifiable, Codable, Equatable {
                 selectedType = .tytProbability
             }
         case .mat2:
-            let sub = Math2SubCategory.allCases.randomElement() ?? .functionGraphs
+            let sub = Math2SubCategory.allCases.randomElement() ?? .advancedFunctions
             chosenSubCategory = .math2(sub)
             switch sub {
-            case .functionGraphs:
-                selectedType = .functionGraph
-            case .parabolaVertices:
-                selectedType = .parabolaVertices
-            case .unitCircle:
-                selectedType = [.unitCircle, .trigIdentity].randomElement() ?? .unitCircle
-            case .logarithmBasics:
-                selectedType = .logarithmBasics
-            case .vectors2D:
-                selectedType = .vectorPuzzle
+            case .advancedFunctions:
+                selectedType = [.functionGraph, .parabolaVertices, .aytFunctions].randomElement() ?? .aytFunctions
+            case .quadraticsComplex:
+                selectedType = .aytQuadratics
+            case .trigonometry:
+                selectedType = [.unitCircle, .trigIdentity, .aytTrig].randomElement() ?? .aytTrig
+            case .logarithms:
+                selectedType = [.logarithmBasics, .aytLog].randomElement() ?? .aytLog
+            case .sequencesSeries:
+                selectedType = .aytSequences
             }
         case .geometry:
             let sub = GeometrySubCategory.allCases.randomElement() ?? .linesAngles
@@ -335,14 +368,19 @@ public struct Question: Identifiable, Codable, Equatable {
                     selectedType = .tytProbability
                 }
             } else if rand < 70.0 {
-                let sub = Math2SubCategory.allCases.randomElement() ?? .functionGraphs
+                let sub = Math2SubCategory.allCases.randomElement() ?? .advancedFunctions
                 chosenSubCategory = .math2(sub)
                 switch sub {
-                case .functionGraphs: selectedType = .functionGraph
-                case .parabolaVertices: selectedType = .parabolaVertices
-                case .unitCircle: selectedType = [.unitCircle, .trigIdentity].randomElement() ?? .unitCircle
-                case .logarithmBasics: selectedType = .logarithmBasics
-                case .vectors2D: selectedType = .vectorPuzzle
+                case .advancedFunctions:
+                    selectedType = [.functionGraph, .parabolaVertices, .aytFunctions].randomElement() ?? .aytFunctions
+                case .quadraticsComplex:
+                    selectedType = .aytQuadratics
+                case .trigonometry:
+                    selectedType = [.unitCircle, .trigIdentity, .aytTrig].randomElement() ?? .aytTrig
+                case .logarithms:
+                    selectedType = [.logarithmBasics, .aytLog].randomElement() ?? .aytLog
+                case .sequencesSeries:
+                    selectedType = .aytSequences
                 }
             } else {
                 let sub = GeometrySubCategory.allCases.randomElement() ?? .linesAngles
@@ -405,6 +443,16 @@ public struct Question: Identifiable, Codable, Equatable {
             generatedQuestion = generateTytFoundationsQuestion(difficulty: difficulty, language: language)
         case .tytProbability:
             generatedQuestion = generateTytProbabilityQuestion(difficulty: difficulty, language: language)
+        case .aytFunctions:
+            generatedQuestion = generateAytFunctionsQuestion(difficulty: difficulty, language: language)
+        case .aytQuadratics:
+            generatedQuestion = generateAytQuadraticsQuestion(difficulty: difficulty, language: language)
+        case .aytTrig:
+            generatedQuestion = generateAytTrigQuestion(difficulty: difficulty, language: language)
+        case .aytLog:
+            generatedQuestion = generateAytLogQuestion(difficulty: difficulty, language: language)
+        case .aytSequences:
+            generatedQuestion = generateAytSequencesQuestion(difficulty: difficulty, language: language)
         }
         
         // Return question with the exactly chosen subCategory to ensure weighting/tracking fits 100%
@@ -1663,6 +1711,520 @@ public struct Question: Identifiable, Codable, Equatable {
         
         return Question(
             type: .tytProbability,
+            prompt: prompt,
+            options: shuffleOptions(correct: correctAnswerVal, distractors: distractors),
+            correctAnswer: correctAnswerVal,
+            numericValues: numeric
+        )
+    }
+    
+    
+    // MARK: - AYT Math 2 Curriculum Generators
+    
+    private static func generateAytFunctionsQuestion(difficulty: AppDifficulty, language: AppLanguage) -> Question {
+        let subTopic: Int
+        switch difficulty {
+        case .easy:
+            subTopic = Int.random(in: 0...1)
+        case .medium:
+            subTopic = Int.random(in: 0...1)
+        case .hard, .expert:
+            subTopic = Int.random(in: 0...2)
+        }
+        
+        var prompt = ""
+        var correctAnswerVal = ""
+        var distractors: [String] = []
+        var numeric: [String: Double] = [:]
+        
+        if subTopic == 0 {
+            let a: Int
+            let b: Int
+            let c: Int
+            switch difficulty {
+            case .easy:
+                a = 0
+                b = Int.random(in: 1...5)
+                c = Int.random(in: 1...3)
+            case .medium:
+                a = Int.random(in: 1...3)
+                b = Int.random(in: -3...3)
+                c = Int.random(in: 2...4)
+            case .hard, .expert:
+                a = Int.random(in: -5...5)
+                b = Int.random(in: -8...8)
+                let cVal = Int.random(in: -3...4)
+                c = cVal == 0 ? 2 : cVal
+            }
+            let correct = c * c + a * c + b
+            correctAnswerVal = "\(correct)"
+            distractors = ["\(correct + 4)", "\(correct - 3)", "\(c * c + b)", "\(correct + (c == 0 ? 2 : c))"]
+            
+            let aSign = a > 0 ? "+ \(a)x " : (a < 0 ? "- \(-a)x " : "")
+            let bSign = b >= 0 ? "+ \(b)" : "- \(-b)"
+            let polyStr = "P(x) = x² \(aSign)\(bSign)"
+            
+            prompt = language == .tr ?
+                "\(polyStr) polinomunun x - \(c) ile bölümünden kalanı bulun." :
+                "Find the remainder when the polynomial \(polyStr) is divided by x - \(c)."
+            numeric = ["a": Double(a), "b": Double(b), "c": Double(c), "correct": Double(correct), "sub": 0.0]
+        } else if subTopic == 1 {
+            let dx: Int
+            let dy: Int
+            switch difficulty {
+            case .easy:
+                dx = Int.random(in: 2...4)
+                dy = 0
+            case .medium:
+                dx = Int.random(in: 2...4)
+                dy = Int.random(in: 1...3)
+            case .hard, .expert:
+                let dxVal = Int.random(in: -4...4)
+                dx = dxVal == 0 ? 2 : dxVal
+                let dyVal = Int.random(in: -3...3)
+                dy = dyVal == 0 ? -2 : dyVal
+            }
+            
+            let dxStr = dx > 0 ? "- \(dx)" : "+ \(-dx)"
+            let dyStr = dy > 0 ? " + \(dy)" : (dy < 0 ? " - \(-dy)" : "")
+            let correctStr = "f(x \(dxStr))\(dyStr)"
+            correctAnswerVal = correctStr
+            
+            let alt1 = "f(x \(dxStr))\(dy != 0 ? " - \(abs(dy))" : " + 2")"
+            let alt2 = "f(x \(dx > 0 ? "+ \(dx)" : "- \(-dx)"))\(dyStr)"
+            let alt3 = "f(x \(dx > 0 ? "+ \(dx)" : "- \(-dx)"))\(dy != 0 ? " - \(abs(dy))" : " + 2")"
+            distractors = [alt1, alt2, alt3]
+            
+            let directionX = dx > 0 ? (language == .tr ? "sağa" : "right") : (language == .tr ? "sola" : "left")
+            let directionY = dy > 0 ? (language == .tr ? "yukarı" : "up") : (language == .tr ? "aşağı" : "down")
+            
+            if dy == 0 {
+                prompt = language == .tr ?
+                    "f(x) fonksiyonu \(abs(dx)) birim \(directionX) ötelenirse oluşan yeni fonksiyonu bulun." :
+                    "If the function f(x) is shifted \(abs(dx)) units to the \(directionX), find the new function."
+            } else {
+                prompt = language == .tr ?
+                    "f(x) fonksiyonu \(abs(dx)) birim \(directionX) ve \(abs(dy)) birim \(directionY) ötelenirse oluşan yeni fonksiyonu bulun." :
+                    "If the function f(x) is shifted \(abs(dx)) units to the \(directionX) and \(abs(dy)) units \(directionY), find the new function."
+            }
+            numeric = ["dx": Double(dx), "dy": Double(dy), "sub": 1.0]
+        } else {
+            let a = Int.random(in: 2...4)
+            let b = Int.random(in: 1...5)
+            let c = a * Int.random(in: 1...3) + b
+            let correct = (c - b) / a
+            correctAnswerVal = "\(correct)"
+            distractors = ["\(correct + 1)", "\(correct - 2)", "\(c * a + b)"]
+            
+            let funcStr = "f(x) = \(a)x + \(b)"
+            prompt = language == .tr ?
+                "\(funcStr) olduğuna göre, f⁻¹(\(c)) değerini bulun." :
+                "Given \(funcStr), find the value of f⁻¹(\(c))."
+            numeric = ["dx": 0.0, "dy": 0.0, "sub": 1.0]
+        }
+        
+        return Question(
+            type: .aytFunctions,
+            prompt: prompt,
+            options: shuffleOptions(correct: correctAnswerVal, distractors: distractors),
+            correctAnswer: correctAnswerVal,
+            numericValues: numeric
+        )
+    }
+    
+    private static func generateAytQuadraticsQuestion(difficulty: AppDifficulty, language: AppLanguage) -> Question {
+        let subTopic: Int
+        switch difficulty {
+        case .easy:
+            subTopic = Int.random(in: 0...1)
+        case .medium:
+            subTopic = Int.random(in: 0...2)
+        case .hard, .expert:
+            subTopic = Int.random(in: 0...2)
+        }
+        
+        var prompt = ""
+        var correctAnswerVal = ""
+        var distractors: [String] = []
+        var numeric: [String: Double] = [:]
+        
+        switch subTopic {
+        case 0:
+            if difficulty == .easy {
+                let a = Int.random(in: 3...9)
+                let b = Int.random(in: 2...12)
+                correctAnswerVal = "\(a)"
+                distractors = ["\(-a)", "\(b)", "\(b / 2)"]
+                prompt = language == .tr ?
+                    "x² - \(a)x + \(b) = 0 denkleminin kökleri x₁ ve x₂'dir. x₁ + x₂ toplamını bulun." :
+                    "The roots of the equation x² - \(a)x + \(b) = 0 are x₁ and x₂. Find the sum x₁ + x₂."
+                numeric = ["a": Double(a), "b": Double(b), "correct": Double(a), "sub": 0.0]
+            } else if difficulty == .medium {
+                let a = Int.random(in: 2...6)
+                let bVal = Int.random(in: -10...10)
+                let b = bVal == 0 ? 5 : bVal
+                correctAnswerVal = "\(b)"
+                distractors = ["\(a)", "\(-b)", "\(b + 2)"]
+                prompt = language == .tr ?
+                    "x² - \(a)x + \(b) = 0 denkleminin kökleri x₁ ve x₂'dir. x₁ • x₂ çarpımını bulun." :
+                    "The roots of the equation x² - \(a)x + \(b) = 0 are x₁ and x₂. Find the product x₁ • x₂."
+                numeric = ["a": Double(a), "b": Double(b), "correct": Double(b), "sub": 0.0]
+            } else {
+                let sumVal = Int.random(in: 3...5)
+                let prodVal = Int.random(in: 1...3)
+                let correct = sumVal * sumVal - 2 * prodVal
+                correctAnswerVal = "\(correct)"
+                distractors = ["\(sumVal * sumVal)", "\(correct - 4)", "\(correct + 2)"]
+                
+                let bSign = -sumVal >= 0 ? "+ \(-sumVal)" : "- \(sumVal)"
+                let polyStr = "x² \(bSign)x + \(prodVal) = 0"
+                prompt = language == .tr ?
+                    "\(polyStr) denkleminin kökleri x₁ ve x₂'dir. x₁² + x₂² ifadesinin değerini bulun." :
+                    "The roots of the equation \(polyStr) are x₁ and x₂. Find the value of x₁² + x₂²."
+                numeric = ["a": Double(sumVal), "b": Double(prodVal), "correct": Double(correct), "sub": 0.0]
+            }
+        case 1:
+            if difficulty == .easy {
+                let a = Int.random(in: 2...6)
+                let b = Int.random(in: 1...5)
+                let c = Int.random(in: 1...4)
+                let d = Int.random(in: 2...5)
+                let real = a + c
+                let imag = b + d
+                correctAnswerVal = "\(real) + \(imag)i"
+                distractors = ["\(real) - \(imag)i", "\(real - 2) + \(imag + 1)i", "\(real + imag)"]
+                prompt = language == .tr ?
+                    "(\(a) + \(b)i) + (\(c) + \(d)i) işleminin sonucunu bulun." :
+                    "Find the result of (\(a) + \(b)i) + (\(c) + \(d)i)."
+                numeric = ["a": Double(a), "b": Double(b), "c": Double(c), "d": Double(d), "sub": 1.0]
+            } else if difficulty == .medium {
+                let a = Int.random(in: 1...3)
+                let b = Int.random(in: 1...2)
+                let c = Int.random(in: 2...4)
+                let d = Int.random(in: 1...2)
+                let real = a * c - b * d
+                let imag = a * d + b * c
+                correctAnswerVal = "\(real) + \(imag)i"
+                distractors = ["\(real) - \(imag)i", "\(real + 2) + \(imag - 1)i", "\(a*c) + \(b*d)i"]
+                prompt = language == .tr ?
+                    "(\(a) + \(b)i) • (\(c) + \(d)i) işleminin sonucunu bulun." :
+                    "Find the result of (\(a) + \(b)i) • (\(c) + \(d)i)."
+                numeric = ["a": Double(a), "b": Double(b), "c": Double(c), "d": Double(d), "sub": 1.0]
+            } else {
+                let choice = Int.random(in: 0...1)
+                if choice == 0 {
+                    let power = Int.random(in: 45...103)
+                    let rem = power % 4
+                    switch rem {
+                    case 0: correctAnswerVal = "1"
+                    case 1: correctAnswerVal = "i"
+                    case 2: correctAnswerVal = "-1"
+                    default: correctAnswerVal = "-i"
+                    }
+                    distractors = ["1", "i", "-1", "-i"].filter { $0 != correctAnswerVal }
+                    prompt = language == .tr ?
+                        "i² = -1 olduğuna göre, i^{\(power)} ifadesinin değerini bulun." :
+                        "Given i² = -1, find the value of i^{\(power)}."
+                } else {
+                    let isPower8 = Bool.random()
+                    let power = isPower8 ? 8 : 6
+                    correctAnswerVal = isPower8 ? "16" : "-8i"
+                    distractors = isPower8 ? ["16i", "-16", "8"] : ["8i", "-8", "64i"]
+                    prompt = language == .tr ?
+                        "(1 + i)^{\(power)} ifadesinin sonucunu bulun." :
+                        "Find the result of the expression (1 + i)^{\(power)}."
+                }
+                numeric = ["a": 1, "b": 1, "c": 0, "d": 0, "sub": 1.0]
+            }
+        default:
+            let m = [9, 16, 25].randomElement() ?? 9
+            let sqrtM = Int(sqrt(Double(m)))
+            let minK = 2 * sqrtM + 1
+            correctAnswerVal = "\(minK)"
+            distractors = ["\(minK - 1)", "\(minK + 2)", "\(sqrtM)"]
+            
+            prompt = language == .tr ?
+                "x² - Kx + \(m) = 0 denkleminin iki farklı reel kökü olması için K'nın alabileceği en küçük pozitif tam sayı değerini bulun." :
+                "Find the smallest positive integer K such that the equation x² - Kx + \(m) = 0 has two distinct real roots."
+            numeric = ["m": Double(m), "correct": Double(minK), "sub": 2.0]
+        }
+        
+        return Question(
+            type: .aytQuadratics,
+            prompt: prompt,
+            options: shuffleOptions(correct: correctAnswerVal, distractors: distractors),
+            correctAnswer: correctAnswerVal,
+            numericValues: numeric
+        )
+    }
+    
+    private static func generateAytTrigQuestion(difficulty: AppDifficulty, language: AppLanguage) -> Question {
+        let subTopic: Int
+        switch difficulty {
+        case .easy:
+            subTopic = 0
+        case .medium:
+            subTopic = Int.random(in: 0...1)
+        case .hard, .expert:
+            subTopic = Int.random(in: 0...1)
+        }
+        
+        var prompt = ""
+        var correctAnswerVal = ""
+        var distractors: [String] = []
+        var numeric: [String: Double] = [:]
+        
+        if subTopic == 0 {
+            if difficulty == .easy {
+                correctAnswerVal = "24/25"
+                distractors = ["12/25", "7/25", "4/5"]
+                prompt = language == .tr ?
+                    "sin(θ) = 3/5 ve cos(θ) = 4/5 olduğuna göre, sin(2θ) yarım açı değerini bulun." :
+                    "Given sin(θ) = 3/5 and cos(θ) = 4/5, find the double-angle value of sin(2θ)."
+                numeric = ["sub": 0.0]
+            } else if difficulty == .medium {
+                correctAnswerVal = "7/9"
+                distractors = ["8/9", "5/9", "1/9"]
+                prompt = language == .tr ?
+                    "sin(θ) = 1/3 olduğuna göre, cos(2θ) değerini bulun." :
+                    "Given sin(θ) = 1/3, find the value of cos(2θ)."
+                numeric = ["sub": 0.0]
+            } else {
+                correctAnswerVal = "56/65"
+                distractors = ["16/65", "48/65", "63/65"]
+                prompt = language == .tr ?
+                    "sin(a) = 3/5 ve cos(b) = 12/13 (a, b dar açılar) ise sin(a + b) değerini bulun." :
+                    "If sin(a) = 3/5 and cos(b) = 12/13 (a, b acute), find sin(a + b)."
+                numeric = ["sub": 0.0]
+            }
+        } else {
+            if difficulty == .easy {
+                let choice = Int.random(in: 0...2)
+                let angle: Int
+                let valStr: String
+                switch choice {
+                case 0: angle = 60; valStr = "1/2"
+                case 1: angle = 30; valStr = "√3/2"
+                default: angle = 45; valStr = "√2/2"
+                }
+                correctAnswerVal = "\(angle)°"
+                distractors = ["\((angle + 15) % 90)°", "\((angle + 30) % 90)°", "90°"].filter { $0 != correctAnswerVal }
+                prompt = language == .tr ?
+                    "cos(x) = \(valStr) denkleminin [0°, 90°] aralığındaki kökünü (x) derece cinsinden bulun." :
+                    "Find the root (x) of the equation cos(x) = \(valStr) in the interval [0°, 90°] in degrees."
+                numeric = ["correct": Double(angle), "sub": 1.0]
+            } else if difficulty == .medium {
+                correctAnswerVal = "15°"
+                distractors = ["30°", "45°", "60°"]
+                prompt = language == .tr ?
+                    "sin(2x) = 1/2 denkleminin [0°, 90°] aralığındaki en küçük kökünü derece cinsinden bulun." :
+                    "Find the smallest root of the equation sin(2x) = 1/2 in the interval [0°, 90°] in degrees."
+                numeric = ["correct": 30.0, "sub": 1.0]
+            } else {
+                correctAnswerVal = "45°"
+                distractors = ["30°", "60°", "90°"]
+                prompt = language == .tr ?
+                    "2cos²(x) - 1 = 0 denkleminin [0°, 90°] aralığındaki kökünü bulun." :
+                    "Find the root of the equation 2cos²(x) - 1 = 0 in the interval [0°, 90°]."
+                numeric = ["correct": 45.0, "sub": 1.0]
+            }
+        }
+        
+        return Question(
+            type: .aytTrig,
+            prompt: prompt,
+            options: shuffleOptions(correct: correctAnswerVal, distractors: distractors),
+            correctAnswer: correctAnswerVal,
+            numericValues: numeric
+        )
+    }
+    
+    private static func generateAytLogQuestion(difficulty: AppDifficulty, language: AppLanguage) -> Question {
+        let subTopic: Int
+        switch difficulty {
+        case .easy:
+            subTopic = Int.random(in: 0...1)
+        case .medium:
+            subTopic = Int.random(in: 0...1)
+        case .hard, .expert:
+            subTopic = Int.random(in: 0...2)
+        }
+        
+        var prompt = ""
+        var correctAnswerVal = ""
+        var distractors: [String] = []
+        var numeric: [String: Double] = [:]
+        
+        if subTopic == 0 {
+            if difficulty == .easy {
+                let correct = Int.random(in: 3...4)
+                let totalVal = Int(pow(2.0, Double(correct)))
+                let a = 2
+                let c = totalVal / a
+                correctAnswerVal = "\(correct)"
+                distractors = ["\(correct + 1)", "\(correct - 1)", "\(totalVal)"]
+                prompt = language == .tr ?
+                    "log_2(\(a)) + log_2(\(c)) ifadesinin değerini bulun." :
+                    "Find the value of the expression: log_2(\(a)) + log_2(\(c))"
+                numeric = ["a": Double(a), "c": Double(c), "correct": Double(correct), "sub": 0.0]
+            } else if difficulty == .medium {
+                let correct = 5
+                let a = 27
+                let c = 9
+                correctAnswerVal = "\(correct)"
+                distractors = ["4", "6", "12"]
+                prompt = language == .tr ?
+                    "log_3(\(a)) + log_3(\(c)) ifadesinin değerini bulun." :
+                    "Find the value of the expression: log_3(\(a)) + log_3(\(c))"
+                numeric = ["a": 3.0, "c": 9.0, "correct": 5.0, "sub": 0.0]
+            } else {
+                correctAnswerVal = "2"
+                distractors = ["1", "3", "5"]
+                prompt = language == .tr ?
+                    "log_5(125) - log_5(5) ifadesinin değerini bulun." :
+                    "Find the value of the expression: log_5(125) - log_5(5)"
+                numeric = ["a": 5.0, "c": 2.0, "correct": 2.0, "sub": 0.0]
+            }
+        } else if subTopic == 1 {
+            if difficulty == .easy {
+                let base = 2
+                let power = Int.random(in: 3...5)
+                let resultVal = Int(pow(Double(base), Double(power)))
+                let correctX = power + 1
+                correctAnswerVal = "\(correctX)"
+                distractors = ["\(correctX - 1)", "\(correctX + 1)", "\(power)"]
+                prompt = language == .tr ?
+                    "Denklemdeki x değerini çözün: 2^(x-1) = \(resultVal)" :
+                    "Solve for x in the equation: 2^(x-1) = \(resultVal)"
+                numeric = ["resultVal": Double(resultVal), "correct": Double(correctX), "sub": 1.0]
+            } else if difficulty == .medium {
+                correctAnswerVal = "2"
+                distractors = ["1", "3", "4"]
+                prompt = language == .tr ?
+                    "3^(2x - 1) = 27 denklemini sağlayan x değerini bulun." :
+                    "Solve for x in the equation: 3^(2x - 1) = 27"
+                numeric = ["resultVal": 27.0, "correct": 2.0, "sub": 1.0]
+            } else {
+                correctAnswerVal = "2"
+                distractors = ["1", "0", "4"]
+                prompt = language == .tr ?
+                    "4^x - 3•2^x - 4 = 0 denklemini sağlayan reel x değerini bulun." :
+                    "Solve for x in the equation: 4^x - 3•2^x - 4 = 0"
+                numeric = ["resultVal": 4.0, "correct": 2.0, "sub": 1.0]
+            }
+        } else {
+            correctAnswerVal = "8"
+            distractors = ["6", "4", "16"]
+            prompt = language == .tr ?
+                "(log₂ x)² - 3 log₂ x + 2 = 0 denkleminin köklerinin çarpımını bulun." :
+                "Find the product of the roots of the equation: (log₂ x)² - 3 log₂ x + 2 = 0"
+            numeric = ["a": 2.0, "c": 4.0, "correct": 2.0, "sub": 0.0]
+        }
+        
+        return Question(
+            type: .aytLog,
+            prompt: prompt,
+            options: shuffleOptions(correct: correctAnswerVal, distractors: distractors),
+            correctAnswer: correctAnswerVal,
+            numericValues: numeric
+        )
+    }
+    
+    private static func generateAytSequencesQuestion(difficulty: AppDifficulty, language: AppLanguage) -> Question {
+        let subTopic: Int
+        switch difficulty {
+        case .easy:
+            subTopic = Int.random(in: 0...1)
+        case .medium:
+            subTopic = Int.random(in: 0...1)
+        case .hard, .expert:
+            subTopic = Int.random(in: 0...2)
+        }
+        
+        var prompt = ""
+        var correctAnswerVal = ""
+        var distractors: [String] = []
+        var numeric: [String: Double] = [:]
+        
+        switch subTopic {
+        case 0:
+            if difficulty == .easy {
+                let a1 = Int.random(in: 2...8)
+                let d = Int.random(in: 2...5)
+                let n = Int.random(in: 4...8)
+                let correct = a1 + (n - 1) * d
+                correctAnswerVal = "\(correct)"
+                distractors = ["\(correct + d)", "\(correct - d)", "\(a1 + n * d)"]
+                prompt = language == .tr ?
+                    "İlk terimi a₁ = \(a1), ortak farkı d = \(d) olan bir aritmetik dizinin \(n). terimini (a_\(n)) bulun." :
+                    "Find the \(n)th term (a_\(n)) of an arithmetic sequence with first term a₁ = \(a1) and common difference d = \(d)."
+                numeric = ["a1": Double(a1), "d": Double(d), "n": Double(n), "correct": Double(correct), "sub": 0.0]
+            } else if difficulty == .medium {
+                let d = Int.random(in: 2...4)
+                let a3 = Int.random(in: 4...10)
+                let a7 = a3 + 4 * d
+                correctAnswerVal = "\(d)"
+                distractors = ["\(d + 1)", "\(d - 1)", "\(d + 2)"]
+                prompt = language == .tr ?
+                    "Bir aritmetik dizide a₃ = \(a3) ve a₇ = \(a7) olduğuna göre, bu dizinin ortak farkını (d) bulun." :
+                    "In an arithmetic sequence a₃ = \(a3) and a₇ = \(a7). Find the common difference (d)."
+                numeric = ["a1": Double(a3 - 2 * d), "d": Double(d), "n": 3, "correct": Double(d), "sub": 0.0]
+            } else {
+                let a1 = 3
+                let d = 2
+                let correct = 120
+                correctAnswerVal = "\(correct)"
+                distractors = ["110", "130", "240"]
+                prompt = language == .tr ?
+                    "İlk terimi a₁ = \(a1), ortak farkı d = \(d) olan bir aritmetik dizinin ilk 10 teriminin toplamını (S₁₀) bulun." :
+                    "Find the sum of the first 10 terms (S₁₀) of an arithmetic sequence with first term a₁ = \(a1) and common difference d = \(d)."
+                numeric = ["a1": Double(a1), "d": Double(d), "n": 5, "correct": Double(correct), "sub": 0.0]
+            }
+        case 1:
+            if difficulty == .easy {
+                let a1 = Int.random(in: 2...3)
+                let r = [2, 3].randomElement() ?? 2
+                let n = 3
+                let correct = a1 * Int(pow(Double(r), Double(n - 1)))
+                correctAnswerVal = "\(correct)"
+                distractors = ["\(correct + r)", "\(correct * r)", "\(a1 + r * n)"]
+                prompt = language == .tr ?
+                    "İlk terimi a₁ = \(a1), ortak çarpanı r = \(r) olan bir geometrik dizinin 3. terimini (a₃) bulun." :
+                    "Find the 3rd term (a₃) of a geometric sequence with first term a₁ = \(a1) and common ratio r = \(r)."
+                numeric = ["a1": Double(a1), "r": Double(r), "n": Double(n), "correct": Double(correct), "sub": 1.0]
+            } else if difficulty == .medium {
+                let r = [2, 3].randomElement() ?? 2
+                let a2 = Int.random(in: 2...4)
+                let a5 = a2 * r * r * r
+                correctAnswerVal = "\(r)"
+                distractors = ["\(r + 1)", "\(r - 1)", "\(r * 2)"]
+                prompt = language == .tr ?
+                    "Bir geometrik dizide a₂ = \(a2) ve a₅ = \(a5) olduğuna göre, bu dizinin ortak çarpanını (r) bulun." :
+                    "In a geometric sequence a₂ = \(a2) and a₅ = \(a5). Find the common ratio (r)."
+                numeric = ["a1": Double(a2) / Double(r), "r": Double(r), "n": 2, "correct": Double(r), "sub": 1.0]
+            } else {
+                let is8 = Bool.random()
+                let a1 = is8 ? 8 : 6
+                let correct = is8 ? 16 : 12
+                correctAnswerVal = "\(correct)"
+                distractors = is8 ? ["8", "24", "32"] : ["6", "18", "24"]
+                prompt = language == .tr ?
+                    "İlk terimi a₁ = \(a1), ortak çarpanı r = 1/2 olan sonsuz azalan geometrik serinin toplamını bulun." :
+                    "Find the sum of an infinite geometric series with first term a₁ = \(a1) and common ratio r = 1/2."
+                numeric = ["a1": Double(a1), "r": 0.5, "n": 4, "correct": Double(correct), "sub": 1.0]
+            }
+        default:
+            let correct = 21
+            correctAnswerVal = "\(correct)"
+            distractors = ["13", "34", "18"]
+            prompt = language == .tr ?
+                "Fibonacci dizisinin 8. terimini (F₈) bulun (Dizi 1, 1, 2, 3, 5, ... şeklinde başlar)." :
+                "Find the 8th term (F₈) of the Fibonacci sequence (sequence starts 1, 1, 2, 3, 5, ...)."
+            numeric = ["a1": 1.0, "r": 1.618, "n": 5, "correct": 21.0, "sub": 1.0]
+        }
+        
+        return Question(
+            type: .aytSequences,
             prompt: prompt,
             options: shuffleOptions(correct: correctAnswerVal, distractors: distractors),
             correctAnswer: correctAnswerVal,
