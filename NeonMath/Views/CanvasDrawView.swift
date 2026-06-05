@@ -857,6 +857,46 @@ public struct CanvasDrawView: View {
         context.draw(labelText, at: point)
     }
     
+    private func drawEquationText(context: GraphicsContext, size: CGSize, equation: String, strokeStyle: StrokeStyle) {
+        let cx = size.width / 2.0
+        let cy = size.height / 2.0
+        
+        let cardW: CGFloat = 260
+        let cardH: CGFloat = 120
+        let cardRect = CGRect(x: cx - cardW / 2.0, y: cy - cardH / 2.0, width: cardW, height: cardH)
+        let cardPath = Path(roundedRect: cardRect, cornerRadius: 16)
+        
+        context.fill(cardPath, with: .color(Color.black.opacity(0.45)))
+        strokeGlowPath(cardPath, in: context, style: strokeStyle, color: glowColor)
+        
+        let lines = equation.components(separatedBy: "\n")
+        let lineSpacing: CGFloat = 30
+        let totalHeight = CGFloat(lines.count - 1) * lineSpacing
+        let startY = cy - totalHeight / 2.0
+        
+        for (idx, line) in lines.enumerated() {
+            let y = startY + CGFloat(idx) * lineSpacing
+            
+            let labelText = Text(line)
+                .font(.system(size: 22, weight: .bold, design: .rounded))
+                .foregroundColor(.white)
+            
+            context.draw(
+                Text(line)
+                    .font(.system(size: 22, weight: .bold, design: .rounded))
+                    .foregroundColor(glowColor.opacity(0.8)),
+                at: CGPoint(x: cx, y: y + 2)
+            )
+            context.draw(
+                Text(line)
+                    .font(.system(size: 22, weight: .bold, design: .rounded))
+                    .foregroundColor(.black),
+                at: CGPoint(x: cx + 1, y: y + 1)
+            )
+            context.draw(labelText, at: CGPoint(x: cx, y: y))
+        }
+    }
+    
     /// Specially sized rendering for Matrix cells
     private func drawCellLabel(context: GraphicsContext, text: String, at point: CGPoint, isUnknown: Bool = false) {
         let labelText = Text(text)
@@ -1189,9 +1229,49 @@ public struct CanvasDrawView: View {
     }
     
     private func drawTytNumbers(context: GraphicsContext, size: CGSize, strokeStyle: StrokeStyle) {
+        if let equation = question.stringValues["canvas_equation"] {
+            drawEquationText(context: context, size: size, equation: equation, strokeStyle: strokeStyle)
+            return
+        }
+        
         let cx = size.width / 2.0
         let cy = size.height / 2.0
         let r: CGFloat = 60.0
+        
+        let isFraction = question.numericValues["isFraction"] ?? 0.0
+        if isFraction == 1.0 {
+            let totalSlices = Int(question.numericValues["totalSlices"] ?? 4.0)
+            let shadedSlices = Int(question.numericValues["shadedSlices"] ?? 1.0)
+            
+            var baseCircle = Path()
+            baseCircle.addEllipse(in: CGRect(x: cx - r, y: cy - r, width: r * 2, height: r * 2))
+            context.stroke(baseCircle, with: .color(glowColor.opacity(0.3)), lineWidth: 1.5)
+            
+            for i in 0..<shadedSlices {
+                let startAngle = Double(i) * (360.0 / Double(totalSlices)) - 90.0
+                let endAngle = Double(i + 1) * (360.0 / Double(totalSlices)) - 90.0
+                
+                var slicePath = Path()
+                slicePath.move(to: CGPoint(x: cx, y: cy))
+                slicePath.addArc(center: CGPoint(x: cx, y: cy), radius: r, startAngle: .degrees(startAngle), endAngle: .degrees(endAngle), clockwise: false)
+                slicePath.closeSubpath()
+                context.fill(slicePath, with: .color(glowColor.opacity(0.2)))
+                strokeGlowPath(slicePath, in: context, style: strokeStyle, color: glowColor)
+            }
+            
+            var dividers = Path()
+            for i in 0..<totalSlices {
+                let angle = Double(i) * (360.0 / Double(totalSlices)) - 90.0
+                let rad = angle * .pi / 180.0
+                dividers.move(to: CGPoint(x: cx, y: cy))
+                dividers.addLine(to: CGPoint(x: cx + r * cos(rad), y: cy + r * sin(rad)))
+            }
+            context.stroke(dividers, with: .color(.white.opacity(0.4)), lineWidth: 1.5)
+            
+            let labelText = "\(shadedSlices)/\(totalSlices)"
+            drawLabel(context: context, text: labelText, at: CGPoint(x: cx - 25, y: cy - 25))
+            return
+        }
         
         var baseCircle = Path()
         baseCircle.addEllipse(in: CGRect(x: cx - r, y: cy - r, width: r * 2, height: r * 2))
@@ -1219,6 +1299,11 @@ public struct CanvasDrawView: View {
     }
     
     private func drawTytEquations(context: GraphicsContext, size: CGSize, strokeStyle: StrokeStyle) {
+        if let equation = question.stringValues["canvas_equation"] {
+            drawEquationText(context: context, size: size, equation: equation, strokeStyle: strokeStyle)
+            return
+        }
+        
         let cx = size.width / 2.0
         let cy = size.height / 2.0
         
@@ -1247,6 +1332,11 @@ public struct CanvasDrawView: View {
     }
     
     private func drawTytProblems(context: GraphicsContext, size: CGSize, strokeStyle: StrokeStyle) {
+        if let equation = question.stringValues["canvas_equation"] {
+            drawEquationText(context: context, size: size, equation: equation, strokeStyle: strokeStyle)
+            return
+        }
+        
         let cx = size.width / 2.0
         let cy = size.height / 2.0
         
@@ -1283,6 +1373,11 @@ public struct CanvasDrawView: View {
     }
     
     private func drawTytFoundations(context: GraphicsContext, size: CGSize, strokeStyle: StrokeStyle) {
+        if let equation = question.stringValues["canvas_equation"] {
+            drawEquationText(context: context, size: size, equation: equation, strokeStyle: strokeStyle)
+            return
+        }
+        
         let cx = size.width / 2.0
         let cy = size.height / 2.0
         
@@ -1324,6 +1419,11 @@ public struct CanvasDrawView: View {
     }
     
     private func drawTytProbability(context: GraphicsContext, size: CGSize, strokeStyle: StrokeStyle) {
+        if let equation = question.stringValues["canvas_equation"] {
+            drawEquationText(context: context, size: size, equation: equation, strokeStyle: strokeStyle)
+            return
+        }
+        
         let cx = size.width / 2.0
         let cy = size.height / 2.0
         

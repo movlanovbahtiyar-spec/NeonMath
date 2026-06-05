@@ -534,15 +534,15 @@ public struct Question: Identifiable, Codable, Equatable {
         case .transformations:
             generatedQuestion = generateTransformationsQuestion(difficulty: difficulty, language: language)
         case .tytNumbers:
-            generatedQuestion = generateTytNumbersQuestion(difficulty: difficulty, language: language)
+            generatedQuestion = generateTytNumbersQuestion(difficulty: difficulty, language: language, index: index)
         case .tytEquations:
-            generatedQuestion = generateTytEquationsQuestion(difficulty: difficulty, language: language)
+            generatedQuestion = generateTytEquationsQuestion(difficulty: difficulty, language: language, index: index)
         case .tytProblems:
-            generatedQuestion = generateTytProblemsQuestion(difficulty: difficulty, language: language)
+            generatedQuestion = generateTytProblemsQuestion(difficulty: difficulty, language: language, index: index)
         case .tytFoundations:
-            generatedQuestion = generateTytFoundationsQuestion(difficulty: difficulty, language: language)
+            generatedQuestion = generateTytFoundationsQuestion(difficulty: difficulty, language: language, index: index)
         case .tytProbability:
-            generatedQuestion = generateTytProbabilityQuestion(difficulty: difficulty, language: language)
+            generatedQuestion = generateTytProbabilityQuestion(difficulty: difficulty, language: language, index: index)
         case .aytFunctions:
             generatedQuestion = generateAytFunctionsQuestion(difficulty: difficulty, language: language)
         case .aytQuadratics:
@@ -1571,14 +1571,67 @@ public struct Question: Identifiable, Codable, Equatable {
         )
     }
     
-    
     // MARK: - TYT Math 1 Curriculum Generators
     
-    private static func generateTytNumbersQuestion(difficulty: AppDifficulty, language: AppLanguage) -> Question {
+    private static func generateTytNumbersQuestion(difficulty: AppDifficulty, language: AppLanguage, index: Int) -> Question {
+        // If index < 4, generate very easy Tier 1 calibrations: Visual Fractions & Operator Matches
+        if index < 4 {
+            var prompt = ""
+            var correctAnswerVal = ""
+            var distractors: [String] = []
+            var numeric: [String: Double] = [:]
+            var strings: [String: String] = [:]
+            
+            if index == 0 {
+                // Visual Fraction 1/4
+                correctAnswerVal = "1/4"
+                distractors = ["1/2", "3/4", "1/3"]
+                prompt = language == .tr ?
+                    "Boyalı bölgenin rasyonel karşılığını bulun." :
+                    "Find the fraction of the shaded area."
+                numeric = ["isFraction": 1.0, "totalSlices": 4.0, "shadedSlices": 1.0, "sub": 5.0]
+            } else if index == 1 {
+                // Operator Match: 3 ? 2 = 5 -> +
+                correctAnswerVal = "+"
+                distractors = ["-", "·", "÷"]
+                prompt = language == .tr ?
+                    "Eşitliği sağlamak için boş kutuya gelmesi gereken işlem sembolünü bulun: 3 ? 2 = 5" :
+                    "Find the operation symbol that satisfies the equation: 3 ? 2 = 5"
+                strings = ["canvas_equation": "3 ? 2 = 5"]
+                numeric = ["sub": 6.0]
+            } else if index == 2 {
+                // Visual Fraction 3/4
+                correctAnswerVal = "3/4"
+                distractors = ["1/4", "1/2", "2/3"]
+                prompt = language == .tr ?
+                    "Boyalı bölgenin rasyonel karşılığını bulun." :
+                    "Find the fraction of the shaded area."
+                numeric = ["isFraction": 1.0, "totalSlices": 4.0, "shadedSlices": 3.0, "sub": 5.0]
+            } else {
+                // Operator Match: 4 ? 2 = 8 -> ·
+                correctAnswerVal = "·"
+                distractors = ["+", "-", "÷"]
+                prompt = language == .tr ?
+                    "Eşitliği sağlamak için boş kutuya gelmesi gereken işlem sembolünü bulun: 4 ? 2 = 8" :
+                    "Find the operation symbol that satisfies the equation: 4 ? 2 = 8"
+                strings = ["canvas_equation": "4 ? 2 = 8"]
+                numeric = ["sub": 6.0]
+            }
+            
+            return Question(
+                type: .tytNumbers,
+                prompt: prompt,
+                options: shuffleOptions(correct: correctAnswerVal, distractors: distractors),
+                correctAnswer: correctAnswerVal,
+                numericValues: numeric,
+                stringValues: strings
+            )
+        }
+        
         let subTopic: Int
         switch difficulty {
         case .easy:
-            subTopic = Int.random(in: 0...2)
+            subTopic = [0, 2].randomElement() ?? 0
         case .medium:
             subTopic = Int.random(in: 0...3)
         case .hard, .expert:
@@ -1589,6 +1642,7 @@ public struct Question: Identifiable, Codable, Equatable {
         var correctAnswerVal = ""
         var distractors: [String] = []
         var numeric: [String: Double] = [:]
+        var strings: [String: String] = [:]
         
         switch subTopic {
         case 0:
@@ -1608,6 +1662,7 @@ public struct Question: Identifiable, Codable, Equatable {
                 "x ve y pozitif tam sayılardır. x + y = \(sumVal) olduğuna göre, x · y çarpımının alabileceği en büyük değeri bulun." :
                 "x and y are positive integers. If x + y = \(sumVal), find the maximum value of x · y."
             numeric = ["sum": Double(sumVal), "correct": Double(correct), "sub": 0.0]
+            strings = ["canvas_equation": "x + y = \(sumVal)\nmax(x · y) = ?"]
         case 1:
             let n: Int
             switch difficulty {
@@ -1624,6 +1679,7 @@ public struct Question: Identifiable, Codable, Equatable {
                 "\(n)! / \((n - 1))! işleminin sonucunu bulun." :
                 "Find the result of the expression: \(n)! / \((n - 1))!"
             numeric = ["n": Double(n), "correct": Double(n), "sub": 3.0]
+            strings = ["canvas_equation": "\(n)! / \((n - 1))! = ?"]
         case 2:
             if difficulty == .easy {
                 correctAnswerVal = "5"
@@ -1632,6 +1688,7 @@ public struct Question: Identifiable, Codable, Equatable {
                     "İki basamaklı 2A sayısı 5 ile tam bölünebildiğine göre, A'nın sıfırdan farklı değerini bulun." :
                     "If the two-digit number 2A is divisible by 5, find the non-zero value of A."
                 numeric = ["d1": 2.0, "d2": 5.0, "correct": 5.0, "sub": 2.0]
+                strings = ["canvas_equation": "2A ⋮ 5\nA = ?"]
             } else {
                 let diff: Int
                 if difficulty == .medium {
@@ -1646,6 +1703,7 @@ public struct Question: Identifiable, Codable, Equatable {
                     "AB ve BA iki basamaklı sayılardır. AB - BA = \(diffVal) olduğuna göre, A - B farkını bulun." :
                     "AB and BA are two-digit numbers. If AB - BA = \(diffVal), find the difference A - B."
                 numeric = ["diffVal": Double(diffVal), "correct": Double(diff), "sub": 1.0]
+                strings = ["canvas_equation": "AB - BA = \(diffVal)\nA - B = ?"]
             }
         case 3:
             let d1: Int
@@ -1666,6 +1724,7 @@ public struct Question: Identifiable, Codable, Equatable {
                 "\(numStr) sayısı 9 ile tam bölünebildiğine göre, A rakamını bulun." :
                 "If the number \(numStr) is divisible by 9, find the digit A."
             numeric = ["d1": Double(d1), "d2": Double(d2), "correct": Double(correctDigit), "sub": 2.0]
+            strings = ["canvas_equation": "\(numStr) ⋮ 9\nA = ?"]
         default:
             let g = [4, 6, 8].randomElement() ?? 6
             let k1 = 2
@@ -1679,6 +1738,7 @@ public struct Question: Identifiable, Codable, Equatable {
                 "EBOB(a, b) = \(g) ve EKOK(a, b) = \(ekok) olarak verilmiştir. a = \(a) olduğuna göre, b değerini bulun." :
                 "Given EBOB(a, b) = \(g) and EKOK(a, b) = \(ekok). If a = \(a), find the value of b."
             numeric = ["g": Double(g), "ekok": Double(ekok), "a": Double(a), "correct": Double(b), "sub": 4.0]
+            strings = ["canvas_equation": "EBOB(a,b) = \(g)\nEKOK(a,b) = \(ekok)\na = \(a)  b = ?"]
         }
         
         return Question(
@@ -1686,11 +1746,12 @@ public struct Question: Identifiable, Codable, Equatable {
             prompt: prompt,
             options: shuffleOptions(correct: correctAnswerVal, distractors: distractors),
             correctAnswer: correctAnswerVal,
-            numericValues: numeric
+            numericValues: numeric,
+            stringValues: strings
         )
     }
     
-    private static func generateTytEquationsQuestion(difficulty: AppDifficulty, language: AppLanguage) -> Question {
+    private static func generateTytEquationsQuestion(difficulty: AppDifficulty, language: AppLanguage, index: Int) -> Question {
         let subTopic: Int
         switch difficulty {
         case .easy:
@@ -1705,6 +1766,7 @@ public struct Question: Identifiable, Codable, Equatable {
         var correctAnswerVal = ""
         var distractors: [String] = []
         var numeric: [String: Double] = [:]
+        var strings: [String: String] = [:]
         
         switch subTopic {
         case 0:
@@ -1718,6 +1780,7 @@ public struct Question: Identifiable, Codable, Equatable {
                     "Denklemi çözerek x değerini bulun: x + \(b) = \(sumVal)" :
                     "Solve for x in the equation: x + \(b) = \(sumVal)"
                 numeric = ["a": 1.0, "b": Double(b), "c": 0.0, "d": Double(sumVal), "correct": Double(x), "sub": 0.0]
+                strings = ["canvas_equation": "x + \(b) = \(sumVal)\nx = ?"]
             } else {
                 let x = Int.random(in: 2...6)
                 let c = Int.random(in: 1...4)
@@ -1731,6 +1794,7 @@ public struct Question: Identifiable, Codable, Equatable {
                     "Bilinmeyen x değerini çözün: \(a)x - \(b) = \(c)x + \(d)" :
                     "Solve for x: \(a)x - \(b) = \(c)x + \(d)"
                 numeric = ["a": Double(a), "b": Double(b), "c": Double(c), "d": Double(d), "correct": Double(x), "sub": 0.0]
+                strings = ["canvas_equation": "\(a)x - \(b) = \(c)x + \(d)\nx = ?"]
             }
         case 1:
             if difficulty == .easy {
@@ -1741,6 +1805,7 @@ public struct Question: Identifiable, Codable, Equatable {
                     "|x| = \(x) denklemini sağlayan en büyük x değerini bulun." :
                     "Find the largest value of x that satisfies the equation: |x| = \(x)"
                 numeric = ["a": 0.0, "b": Double(x), "correct": Double(x), "sub": 2.0]
+                strings = ["canvas_equation": "|x| = \(x)\nmax(x) = ?"]
             } else {
                 let a = Int.random(in: 2...8)
                 let b = Int.random(in: 3...7)
@@ -1751,6 +1816,7 @@ public struct Question: Identifiable, Codable, Equatable {
                     "|x - \(a)| = \(b) denklemini sağlayan en büyük x değerini bulun." :
                     "Find the largest value of x that satisfies the equation: |x - \(a)| = \(b)."
                 numeric = ["a": Double(a), "b": Double(b), "correct": Double(correct), "sub": 2.0]
+                strings = ["canvas_equation": "|x - \(a)| = \(b)\nmax(x) = ?"]
             }
         case 2:
             if difficulty == .easy {
@@ -1763,6 +1829,7 @@ public struct Question: Identifiable, Codable, Equatable {
                     "Denklemdeki x değerini bulun: \(b)^x = \(p)" :
                     "Find the value of x in the equation: \(b)^x = \(p)"
                 numeric = ["a": Double(b), "b": Double(p), "correct": Double(x), "sub": 3.0]
+                strings = ["canvas_equation": "\(b)^x = \(p)\nx = ?"]
             } else {
                 let b = [2, 3].randomElement() ?? 2
                 let x = Int.random(in: 3...5)
@@ -1773,6 +1840,7 @@ public struct Question: Identifiable, Codable, Equatable {
                     "Denklemdeki x değerini bulun: \(b)^x = \(p)" :
                     "Find the value of x in the equation: \(b)^x = \(p)"
                 numeric = ["a": Double(b), "b": Double(p), "correct": Double(x), "sub": 3.0]
+                strings = ["canvas_equation": "\(b)^x = \(p)\nx = ?"]
             }
         case 3:
             let xMin = Int.random(in: 1...4)
@@ -1789,7 +1857,8 @@ public struct Question: Identifiable, Codable, Equatable {
             prompt = language == .tr ?
                 "\(a) < 2x - 1 ≤ \(b) eşitsizliğini sağlayan x aralığını bulun." :
                 "Find the range of x that satisfies the inequality: \(a) < 2x - 1 <= \(b)."
-            numeric = ["a": Double(a), "b": Double(b), "xMin": Double(xMin), "xMax": Double(xMax), "sub": 1.0]
+            numeric = ["a": Double(a), "b": Double(b), "xMin": Double(xMin), "xMax": Double(xMax), "sub": 3.0]
+            strings = ["canvas_equation": "\(a) < 2x - 1 ≤ \(b)\nx = ?"]
         default:
             let a = Int.random(in: 1...5)
             let b = Int.random(in: 3...6)
@@ -1800,6 +1869,7 @@ public struct Question: Identifiable, Codable, Equatable {
                 "√(x - \(a)) = \(b) denklemini sağlayan x değerini bulun." :
                 "Find the value of x that satisfies the equation: √(x - \(a)) = \(b)."
             numeric = ["a": Double(a), "b": Double(b), "correct": Double(correct), "sub": 4.0]
+            strings = ["canvas_equation": "√(x - \(a)) = \(b)\nx = ?"]
         }
         
         return Question(
@@ -1807,11 +1877,12 @@ public struct Question: Identifiable, Codable, Equatable {
             prompt: prompt,
             options: shuffleOptions(correct: correctAnswerVal, distractors: distractors),
             correctAnswer: correctAnswerVal,
-            numericValues: numeric
+            numericValues: numeric,
+            stringValues: strings
         )
     }
     
-    private static func generateTytProblemsQuestion(difficulty: AppDifficulty, language: AppLanguage) -> Question {
+    private static func generateTytProblemsQuestion(difficulty: AppDifficulty, language: AppLanguage, index: Int) -> Question {
         let subTopic: Int
         switch difficulty {
         case .easy:
@@ -1826,6 +1897,7 @@ public struct Question: Identifiable, Codable, Equatable {
         var correctAnswerVal = ""
         var distractors: [String] = []
         var numeric: [String: Double] = [:]
+        var strings: [String: String] = [:]
         
         switch subTopic {
         case 0:
@@ -1839,6 +1911,7 @@ public struct Question: Identifiable, Codable, Equatable {
                     "Üçte biri (1/3) \(base) olan sayıyı bulun." :
                     "Find the number whose one-third (1/3) is \(base)."
                 numeric = ["t": Double(base), "correct": Double(result), "sub": 0.0]
+                strings = ["canvas_equation": "x / 3 = \(base)\nx = ?"]
             } else {
                 let x = Int.random(in: 2...8) * 2
                 let t = x / 2 + 3 * x
@@ -1848,6 +1921,7 @@ public struct Question: Identifiable, Codable, Equatable {
                     "Bir sayının yarısı ile 3 katının toplamı \(t) olduğuna göre, bu sayıyı bulun." :
                     "If the sum of half a number and 3 times the number is \(t), find the number."
                 numeric = ["t": Double(t), "correct": Double(x), "sub": 0.0]
+                strings = ["canvas_equation": "x/2 + 3x = \(t)\nx = ?"]
             }
         case 1:
             if difficulty == .easy {
@@ -1857,9 +1931,10 @@ public struct Question: Identifiable, Codable, Equatable {
                 correctAnswerVal = "\(dist)"
                 distractors = ["\(dist - speed)", "\(dist + speed)", "\(speed + t)"]
                 prompt = language == .tr ?
-                    "Saatte \(speed) km hızla giden bir araç 2 saatte kaç km yol alır?" :
-                    "How many km does a car traveling at \(speed) km/h travel in 2 hours?"
+                    "Saatte \(speed) km hızla giden bir araç \(t) saatte kaç km yol alır?" :
+                    "How many km does a car traveling at \(speed) km/h travel in \(t) hours?"
                 numeric = ["d": Double(dist), "v1": Double(speed), "v2": 0.0, "correct": Double(dist), "sub": 3.0]
+                strings = ["canvas_equation": "Hız: \(speed) km/sa\nSüre: \(t) sa\nYol = ?"]
             } else {
                 let v1 = 60
                 let v2 = 80
@@ -1871,6 +1946,7 @@ public struct Question: Identifiable, Codable, Equatable {
                     "Aralarında \(d) km olan iki araç, sırasıyla \(v1) km/sa ve \(v2) km/sa hızlarla birbirine doğru hareket ediyor. Kaç saat sonra karşılaşırlar?" :
                     "Two cars, \(d) km apart, move towards each other at \(v1) km/h and \(v2) km/h respectively. In how many hours will they meet?"
                 numeric = ["d": Double(d), "v1": Double(v1), "v2": Double(v2), "correct": Double(t), "sub": 3.0]
+                strings = ["canvas_equation": "Mesafe: \(d) km\nv1: \(v1), v2: \(v2)\nKarşılaşma = ? sa"]
             }
         case 2:
             if difficulty == .easy {
@@ -1883,6 +1959,7 @@ public struct Question: Identifiable, Codable, Equatable {
                     "\(total) sayısının %\(p)'si kaçtır?" :
                     "What is \(p)% of \(total)?"
                 numeric = ["c": Double(total), "p": Double(p), "correct": Double(val), "sub": 4.0]
+                strings = ["canvas_equation": "\(total) · %\(p) = ?"]
             } else {
                 let c = [100, 200, 300].randomElement() ?? 200
                 let p = [10, 20, 25, 30].randomElement() ?? 20
@@ -1893,6 +1970,7 @@ public struct Question: Identifiable, Codable, Equatable {
                     "Maliyet fiyatı \(c) TL olan bir ürün %\(p) kârla satılırsa satış fiyatı kaç TL olur?" :
                     "If a product costing \(c) TL is sold at a \(p)% profit, what is the selling price in TL?"
                 numeric = ["c": Double(c), "p": Double(p), "correct": Double(correctS), "sub": 4.0]
+                strings = ["canvas_equation": "Maliyet: \(c) TL\nKâr: %\(p)\nSatış = ?"]
             }
         case 3:
             let sonAge = Int.random(in: 10...18)
@@ -1904,6 +1982,7 @@ public struct Question: Identifiable, Codable, Equatable {
                 "Bir baba \(fatherAge) yaşında, oğlu ise \(sonAge) yaşındadır. Kaç yıl sonra babanın yaşı oğlunun yaşının 2 katı olur?" :
                 "A father is \(fatherAge) years old and his son is \(sonAge) years old. In how many years will the father's age be 2 times the son's age?"
             numeric = ["fatherAge": Double(fatherAge), "sonAge": Double(sonAge), "correct": Double(years), "sub": 1.0]
+            strings = ["canvas_equation": "Baba: \(fatherAge)  Oğul: \(sonAge)\nBaba = 2 · Oğul (kaç yıl sonra?)"]
         default:
             let pair = [(6, 12, 4), (10, 15, 6), (12, 24, 8), (8, 24, 6)].randomElement() ?? (6, 12, 4)
             correctAnswerVal = "\(pair.2)"
@@ -1912,6 +1991,7 @@ public struct Question: Identifiable, Codable, Equatable {
                 "Ali bir işi tek başına \(pair.0) günde, Veli ise \(pair.1) günde bitiriyor. İkisi birlikte bu işi kaç günde bitirir?" :
                 "Ali can complete a job alone in \(pair.0) days, and Veli in \(pair.1) days. How many days will it take if they work together?"
             numeric = ["a": Double(pair.0), "b": Double(pair.1), "correct": Double(pair.2), "sub": 2.0]
+            strings = ["canvas_equation": "Ali: \(pair.0) gün  Veli: \(pair.1) gün\nBirlikte = ? gün"]
         }
         
         return Question(
@@ -1919,11 +1999,12 @@ public struct Question: Identifiable, Codable, Equatable {
             prompt: prompt,
             options: shuffleOptions(correct: correctAnswerVal, distractors: distractors),
             correctAnswer: correctAnswerVal,
-            numericValues: numeric
+            numericValues: numeric,
+            stringValues: strings
         )
     }
     
-    private static func generateTytFoundationsQuestion(difficulty: AppDifficulty, language: AppLanguage) -> Question {
+    private static func generateTytFoundationsQuestion(difficulty: AppDifficulty, language: AppLanguage, index: Int) -> Question {
         let subTopic: Int
         switch difficulty {
         case .easy:
@@ -1938,6 +2019,7 @@ public struct Question: Identifiable, Codable, Equatable {
         var correctAnswerVal = ""
         var distractors: [String] = []
         var numeric: [String: Double] = [:]
+        var strings: [String: String] = [:]
         
         switch subTopic {
         case 0:
@@ -1951,6 +2033,7 @@ public struct Question: Identifiable, Codable, Equatable {
                     "f(x) = x + \(b) olduğuna göre, f(\(c)) değerini bulun." :
                     "Given f(x) = x + \(b), find the value of f(\(c))."
                 numeric = ["a": 1.0, "b": Double(b), "c": Double(c), "correct": Double(correct), "sub": 0.0]
+                strings = ["canvas_equation": "f(x) = x + \(b)\nf(\(c)) = ?"]
             } else if difficulty == .medium {
                 let a = Int.random(in: 2...5)
                 let b = Int.random(in: 1...6)
@@ -1962,6 +2045,7 @@ public struct Question: Identifiable, Codable, Equatable {
                     "f(x) = \(a)x + \(b) olduğuna göre, f(\(c)) değerini bulun." :
                     "Given f(x) = \(a)x + \(b), find the value of f(\(c))."
                 numeric = ["a": Double(a), "b": Double(b), "c": Double(c), "correct": Double(correct), "sub": 0.0]
+                strings = ["canvas_equation": "f(x) = \(a)x + \(b)\nf(\(c)) = ?"]
             } else {
                 let correct = 4
                 correctAnswerVal = "4"
@@ -1970,6 +2054,7 @@ public struct Question: Identifiable, Codable, Equatable {
                     "f(x) = 2x ve g(x) = x - 3 olduğuna göre, (f ∘ g)(5) değerini bulun." :
                     "Given f(x) = 2x and g(x) = x - 3, find the value of (f ∘ g)(5)."
                 numeric = ["a": 2.0, "b": 0.0, "c": 5.0, "correct": 4.0, "sub": 0.0]
+                strings = ["canvas_equation": "f(x) = 2x , g(x) = x - 3\n(f ∘ g)(5) = ?"]
             }
         case 1:
             let n: Int
@@ -1991,6 +2076,7 @@ public struct Question: Identifiable, Codable, Equatable {
                 "A ve B kümeleri için s(A) = \(n) ve s(B) = \(m) olduğuna göre, s(A × B) kartezyen çarpım kümesinin eleman sayısını bulun." :
                 "For sets A and B, if s(A) = \(n) and s(B) = \(m), find the number of elements in s(A × B)."
             numeric = ["n": Double(n), "m": Double(m), "correct": Double(correct), "sub": 1.0]
+            strings = ["canvas_equation": "s(A) = \(n) , s(B) = \(m)\ns(A × B) = ?"]
         default:
             if difficulty == .medium {
                 let base = Int.random(in: 5...12)
@@ -2009,6 +2095,7 @@ public struct Question: Identifiable, Codable, Equatable {
                     "Verilen sayı grubunun medyan (ortanca) değerini bulun: [\(listStr)]" :
                     "Find the median value of the following numbers: [\(listStr)]"
                 numeric = ["n1": Double(num1), "n2": Double(num2), "n3": Double(num3), "n4": Double(num4), "n5": Double(num5), "sub": 2.0]
+                strings = ["canvas_equation": "Medyan([\(listStr)]) = ?"]
             } else {
                 let correct = 11
                 correctAnswerVal = "11"
@@ -2017,6 +2104,7 @@ public struct Question: Identifiable, Codable, Equatable {
                     "Verilen sayı grubunun medyan (ortanca) değerini bulun: [5, 8, 10, 12, 15, 20]" :
                     "Find the median value of the following numbers: [5, 8, 10, 12, 15, 20]"
                 numeric = ["n1": 5.0, "n2": 8.0, "n3": 10.0, "n4": 12.0, "n5": 15.0, "sub": 2.0]
+                strings = ["canvas_equation": "Medyan([5, 8, 10, 12, 15, 20]) = ?"]
             }
         }
         
@@ -2025,11 +2113,12 @@ public struct Question: Identifiable, Codable, Equatable {
             prompt: prompt,
             options: shuffleOptions(correct: correctAnswerVal, distractors: distractors),
             correctAnswer: correctAnswerVal,
-            numericValues: numeric
+            numericValues: numeric,
+            stringValues: strings
         )
     }
     
-    private static func generateTytProbabilityQuestion(difficulty: AppDifficulty, language: AppLanguage) -> Question {
+    private static func generateTytProbabilityQuestion(difficulty: AppDifficulty, language: AppLanguage, index: Int) -> Question {
         let subTopic: Int
         switch difficulty {
         case .easy:
@@ -2044,6 +2133,7 @@ public struct Question: Identifiable, Codable, Equatable {
         var correctAnswerVal = ""
         var distractors: [String] = []
         var numeric: [String: Double] = [:]
+        var strings: [String: String] = [:]
         
         switch subTopic {
         case 0:
@@ -2054,6 +2144,7 @@ public struct Question: Identifiable, Codable, Equatable {
                     "3 farklı kitap bir rafa yan yana kaç farklı şekilde dizilebilir?" :
                     "In how many different ways can 3 different books be arranged side-by-side on a shelf?"
                 numeric = ["n": 3.0, "correct": 6.0, "sub": 0.0]
+                strings = ["canvas_equation": "3 Farklı Kitap\nSıralama Sayısı = ?"]
             } else {
                 let n = [5, 6].randomElement() ?? 5
                 let correct = n == 5 ? 120 : 360
@@ -2063,6 +2154,7 @@ public struct Question: Identifiable, Codable, Equatable {
                     "4 kişi, yan yana duran \(n) koltuğa kaç farklı şekilde oturabilir?" :
                     "In how many different ways can 4 people sit on \(n) adjacent chairs?"
                 numeric = ["n": Double(n), "correct": Double(correct), "sub": 0.0]
+                strings = ["canvas_equation": "4 Kişi, \(n) Koltuk\nOturma Şekli = ?"]
             }
         case 1:
             if difficulty == .easy {
@@ -2072,6 +2164,7 @@ public struct Question: Identifiable, Codable, Equatable {
                     "4 kişi arasından 2 kişilik bir takım kaç farklı şekilde seçilebilir?" :
                     "How many different ways can a team of 2 people be chosen from 4 people?"
                 numeric = ["n": 4.0, "m": 2.0, "correct": 6.0, "sub": 1.0]
+                strings = ["canvas_equation": "Seçim: C(4, 2) = ?"]
             } else {
                 let config = [(6, 3, 20), (6, 2, 15), (5, 2, 10)].randomElement() ?? (6, 3, 20)
                 correctAnswerVal = "\(config.2)"
@@ -2080,6 +2173,7 @@ public struct Question: Identifiable, Codable, Equatable {
                     "\(config.0) kişi arasından \(config.1) kişilik bir komite kaç farklı şekilde seçilebilir?" :
                     "How many different ways can a committee of \(config.1) people be chosen from \(config.0) people?"
                 numeric = ["n": Double(config.0), "m": Double(config.1), "correct": Double(config.2), "sub": 1.0]
+                strings = ["canvas_equation": "Seçim: C(\(config.0), \(config.1)) = ?"]
             }
         case 2:
             if difficulty == .easy {
@@ -2088,14 +2182,16 @@ public struct Question: Identifiable, Codable, Equatable {
                 prompt = language == .tr ?
                     "Düzgün bir madeni para havaya atılıyor. Üst yüze tura gelme olasılığı kaçtır?" :
                     "A fair coin is tossed. What is the probability of getting heads?"
-                numeric = ["s": 2.0, "sub": 3.0]
+                numeric = ["s": 2.0, "sub": 2.0]
+                strings = ["canvas_equation": "Para Atışı\nP(Tura) = ?"]
             } else if difficulty == .medium {
                 correctAnswerVal = "1/2"
                 distractors = ["1/3", "2/3", "1/6"]
                 prompt = language == .tr ?
                     "Bir zar havaya atılıyor. Üst yüze gelen sayının çift sayı olma olasılığı kaçtır?" :
                     "A die is rolled. What is the probability of getting an even number?"
-                numeric = ["s": 6.0, "sub": 3.0]
+                numeric = ["s": 6.0, "sub": 2.0]
+                strings = ["canvas_equation": "Zar Atışı\nP(Çift) = ?"]
             } else {
                 let sums = [3, 4, 11]
                 let s = sums.randomElement() ?? 3
@@ -2105,7 +2201,8 @@ public struct Question: Identifiable, Codable, Equatable {
                 prompt = language == .tr ?
                     "İki zar aynı anda atılıyor. Üst yüze gelen sayıların toplamının \(s) olma olasılığı kaçtır?" :
                     "Two dice are rolled simultaneously. What is the probability that the sum of the numbers is \(s)?"
-                numeric = ["s": Double(s), "sub": 3.0]
+                numeric = ["s": Double(s), "sub": 2.0]
+                strings = ["canvas_equation": "2 Zar\nP(Toplam=\(s)) = ?"]
             }
         default:
             let a = Int.random(in: 2...5)
@@ -2116,6 +2213,7 @@ public struct Question: Identifiable, Codable, Equatable {
                 "(x + \(a))³ ifadesinin açılımındaki x² teriminin katsayısını bulun." :
                 "Find the coefficient of the x² term in the expansion of (x + \(a))³."
             numeric = ["a": Double(a), "correct": Double(correct), "sub": 2.0]
+            strings = ["canvas_equation": "(x + \(a))³\nx² Terim Katsayısı = ?"]
         }
         
         return Question(
