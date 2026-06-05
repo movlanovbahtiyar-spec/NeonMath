@@ -6,6 +6,12 @@ public enum AppLanguage: String, Codable, CaseIterable {
     case tr = "TR"
 }
 
+/// Defines the available curriculum tracks.
+public enum CurriculumTrack: String, Codable, CaseIterable {
+    case mat1 = "MAT-1"
+    case mat2 = "MAT-2"
+}
+
 /// Models user gameplay history, statistics, and high scores.
 /// Supports Codable for simple local persistence in UserDefaults.
 public struct UserProfile: Codable, Equatable {
@@ -33,6 +39,9 @@ public struct UserProfile: Codable, Equatable {
     /// The user's selected application interface language.
     public var language: AppLanguage
     
+    /// The user's selected curriculum track.
+    public var selectedTrack: CurriculumTrack
+    
     public init(
         id: UUID = UUID(),
         username: String = "Player 1",
@@ -41,7 +50,8 @@ public struct UserProfile: Codable, Equatable {
         totalCorrectAnswers: Int = 0,
         totalQuestionsAttempted: Int = 0,
         streakRecord: Int = 0,
-        language: AppLanguage = .en
+        language: AppLanguage = .en,
+        selectedTrack: CurriculumTrack = .mat1
     ) {
         self.id = id
         self.username = username
@@ -51,6 +61,7 @@ public struct UserProfile: Codable, Equatable {
         self.totalQuestionsAttempted = totalQuestionsAttempted
         self.streakRecord = streakRecord
         self.language = language
+        self.selectedTrack = selectedTrack
     }
     
     // MARK: - Backward Compatible Codable Implementation
@@ -64,6 +75,7 @@ public struct UserProfile: Codable, Equatable {
         case totalQuestionsAttempted
         case streakRecord
         case language
+        case selectedTrack
     }
     
     public init(from decoder: Decoder) throws {
@@ -77,6 +89,8 @@ public struct UserProfile: Codable, Equatable {
         self.streakRecord = try container.decode(Int.self, forKey: .streakRecord)
         // Fallback safely to English if the language key does not exist yet in local storage
         self.language = try container.decodeIfPresent(AppLanguage.self, forKey: .language) ?? .en
+        // Fallback safely to MAT-1 if the selectedTrack key does not exist yet in local storage
+        self.selectedTrack = try container.decodeIfPresent(CurriculumTrack.self, forKey: .selectedTrack) ?? .mat1
     }
     
     /// Saves the profile locally to UserDefaults.

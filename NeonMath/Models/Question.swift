@@ -78,9 +78,8 @@ public struct Question: Identifiable, Codable, Equatable {
         self.stringValues = try container.decodeIfPresent([String: String].self, forKey: .stringValues) ?? [:]
     }
     
-    /// Generates a question dynamically adjusted to the player's current score (Dynamic Difficulty Adjustment) and chosen language.
-    /// Questions are chosen at random from all topics, but their difficulty scales based on score.
-    public static func generate(forScore score: Int, language: AppLanguage) -> Question {
+    /// Generates a question dynamically adjusted to the player's current score (Dynamic Difficulty Adjustment), chosen language, and chosen curriculum track.
+    public static func generate(forScore score: Int, language: AppLanguage, track: CurriculumTrack) -> Question {
         // Resolve difficulty based on active score progression
         let difficulty: AppDifficulty
         if score <= 500 {
@@ -93,8 +92,18 @@ public struct Question: Identifiable, Codable, Equatable {
             difficulty = .expert
         }
         
-        // Pick any math topic randomly to mix subjects
-        let tierType = QuestionType.allCases.randomElement() ?? .triangleAngle
+        // Filter the available question types based on the selected track
+        let availableTypes: [QuestionType]
+        switch track {
+        case .mat1:
+            // Geometry basic topics, Basic Algebra/IQ patterns
+            availableTypes = [.triangleAngle, .transversalParallel, .supplementaryLines, .matrixGrid, .functionGraph, .geometricIQPattern]
+        case .mat2:
+            // Trigonometry, advanced coordinate math/vectors, advanced circle geometry
+            availableTypes = [.unitCircle, .triangleTrig, .trigIdentity, .vectorPuzzle, .inscribedCircleAngle, .circleTangent]
+        }
+        
+        let tierType = availableTypes.randomElement() ?? .triangleAngle
         
         switch tierType {
         case .triangleAngle:
@@ -124,8 +133,8 @@ public struct Question: Identifiable, Codable, Equatable {
         }
     }
     
-    public static func generateRandom(language: AppLanguage) -> Question {
-        return generate(forScore: Int.random(in: 0...2500), language: language)
+    public static func generateRandom(language: AppLanguage, track: CurriculumTrack = .mat1) -> Question {
+        return generate(forScore: Int.random(in: 0...2500), language: language, track: track)
     }
     
     // MARK: - Procedural Generators (Geometry)

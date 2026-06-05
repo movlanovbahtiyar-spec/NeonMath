@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Math - Speed Puzzling System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0A0A0C;
+            --card-bg: #131317;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --primary-glow: #00F0FF;
+            --secondary-glow: #BD00FF;
+            --text-main: #F8FAFC;
+            --text-muted: #94A3B8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Ambient Glow Background */
+        .ambient-glow {
+            position: absolute;
+            top: -200px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(0, 240, 255, 0.08) 0%, rgba(189, 0, 255, 0.04) 50%, rgba(0,0,0,0) 100%);
+            filter: blur(80px);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        header {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 24px;
+            font-weight: 900;
+            letter-spacing: 2px;
+            color: var(--text-main);
+            text-decoration: none;
+        }
+
+        .logo-symbol {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid var(--primary-glow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--primary-glow);
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
+            text-shadow: 0 0 5px rgba(0, 240, 255, 0.4);
+        }
+
+        .lang-switch button {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: var(--primary-glow);
+            padding: 8px 18px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 800;
+            font-size: 13px;
+            letter-spacing: 1.5px;
+            transition: all 0.3s ease;
+        }
+
+        .lang-switch button:hover {
+            background: var(--primary-glow);
+            color: #000;
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
+            border-color: var(--primary-glow);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px 100px 20px;
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 60px 0;
+        }
+
+        .hero h1 {
+            font-size: 64px;
+            font-weight: 900;
+            letter-spacing: 5px;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #FFF 0%, rgba(255,255,255,0.7) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            font-size: 20px;
+            color: var(--text-muted);
+            max-width: 650px;
+            margin: 0 auto 40px auto;
+            font-weight: 400;
+        }
+
+        .hero-actions {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-block;
+            text-decoration: none;
+            padding: 16px 36px;
+            border-radius: 30px;
+            font-size: 15px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background-color: var(--text-main);
+            color: #000;
+            box-shadow: 0 4px 20px rgba(255, 255, 255, 0.15);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(255, 255, 255, 0.25);
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+            border-color: var(--text-muted);
+            transform: translateY(-2px);
+        }
+
+        /* Features Section */
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin: 80px 0;
+        }
+
+        .feature-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 35px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--primary-glow);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .feature-card:nth-child(2)::before {
+            background: var(--secondary-glow);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .feature-card:hover::before {
+            opacity: 1;
+        }
+
+        .feature-icon {
+            font-size: 32px;
+            margin-bottom: 20px;
+        }
+
+        .feature-card h3 {
+            font-size: 20px;
+            font-weight: 800;
+            margin-bottom: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        .feature-card p {
+            color: var(--text-muted);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        /* Support & Contact Section */
+        .support-section {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 50px;
+            margin-top: 80px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 50px;
+            align-items: center;
+        }
+
+        @media (max-width: 768px) {
+            .support-section {
+                grid-template-columns: 1fr;
+                padding: 30px;
+                gap: 30px;
+            }
+            .hero h1 {
+                font-size: 40px;
+                letter-spacing: 2px;
+            }
+        }
+
+        .support-info h2 {
+            font-size: 32px;
+            font-weight: 900;
+            margin-bottom: 15px;
+            letter-spacing: 1px;
+        }
+
+        .support-info p {
+            color: var(--text-muted);
+            margin-bottom: 25px;
+            font-size: 15px;
+        }
+
+        .contact-details {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .contact-item-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-glow);
+            font-size: 16px;
+        }
+
+        .contact-item-text a {
+            color: var(--text-main);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            transition: color 0.3s ease;
+        }
+
+        .contact-item-text a:hover {
+            color: var(--primary-glow);
+        }
+
+        .support-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group label {
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        .form-control {
+            background-color: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 14px;
+            color: var(--text-main);
+            font-family: inherit;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-glow);
+            background-color: rgba(255, 255, 255, 0.04);
+            box-shadow: 0 0 10px rgba(0, 240, 255, 0.1);
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, var(--primary-glow) 0%, var(--secondary-glow) 100%);
+            border: none;
+            color: #000;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            padding: 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: transform 0.2s ease, opacity 0.3s ease;
+            font-size: 14px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-1px);
+            opacity: 0.95;
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
+        }
+
+        footer {
+            border-top: 1px solid var(--border-color);
+            padding: 40px 20px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 20px;
+        }
+
+        .footer-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: var(--primary-glow);
+        }
+    </style>
+</head>
+<body>
+    <div class="ambient-glow"></div>
+
+    <header>
+        <a href="#" class="logo">
+            <div class="logo-symbol">π</div>
+            <span>NEON MATH</span>
+        </a>
+        <div class="lang-switch">
+            <button onclick="toggleLang()">TR / EN</button>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Hero Section -->
+        <section class="hero">
+            <h1 id="hero-title">SPEED PUZZLING SYSTEM</h1>
+            <p id="hero-desc">Test your mathematical wits in a fast-paced, glowing neon playground. Procedurally generated geometric, algebraic, and trigonometric puzzles that adapt to your skills.</p>
+            <div class="hero-actions">
+                <a href="#support" class="btn btn-primary" id="btn-support">Support & Contact</a>
+                <a href="https://github.com/movlanovbahtiyar-spec/NeonMath" target="_blank" class="btn btn-secondary" id="btn-github">View GitHub</a>
+            </div>
+        </section>
+
+        <!-- Features Grid -->
+        <section class="features">
+            <div class="feature-card">
+                <div class="feature-icon">📐</div>
+                <h3 id="feat1-title">MAT-1 Curriculum</h3>
+                <p id="feat1-desc">Focuses on foundational math & basic geometry. Play with triangle angles, parallel transversals, supplementary angle splits, number grid matrices, and basic linear/parabolical function graphs.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">📈</div>
+                <h3 id="feat2-title">MAT-2 Curriculum</h3>
+                <p id="feat2-desc">Dive into advanced math, trigonometry, and coordinate geometry. Test your limits with unit circle coordinates, right triangle ratios, algebraic identities, vectors, inscribed angles, and tangent lines.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">⚡</div>
+                <h3 id="feat3-title">Dynamic Difficulty (DDA)</h3>
+                <p id="feat3-desc">The puzzle engine dynamically scales question difficulty as your score grows. Progress from Easy to Expert challenges in a 60-second race where every correct answer saves you time.</p>
+            </div>
+        </section>
+
+        <!-- Support / Contact Section -->
+        <section class="support-section" id="support">
+            <div class="support-info">
+                <h2 id="support-title">Get in Touch</h2>
+                <p id="support-desc">Have a question about Neon Math? Encountered an issue in the game? Feel free to contact us. We usually respond within 24 hours.</p>
+                <div class="contact-details">
+                    <div class="contact-item">
+                        <div class="contact-item-icon">✉</div>
+                        <div class="contact-item-text">
+                            <a href="mailto:movlanovbahtiyar@gmail.com">movlanovbahtiyar@gmail.com</a>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <div class="contact-item-icon">👤</div>
+                        <div class="contact-item-text">
+                            <a href="https://github.com/movlanovbahtiyar-spec" target="_blank">github.com/movlanovbahtiyar-spec</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Support form pre-filling email details -->
+            <form class="support-form" action="mailto:movlanovbahtiyar@gmail.com" method="GET" enctype="text/plain">
+                <div class="form-group">
+                    <label for="name" id="label-name">Your Name</label>
+                    <input type="text" name="subject" id="name" class="form-control" placeholder="John Doe" required>
+                </div>
+                <div class="form-group">
+                    <label for="message" id="label-message">Your Message</label>
+                    <textarea name="body" id="message" rows="4" class="form-control" placeholder="Describe your inquiry..." required></textarea>
+                </div>
+                <button type="submit" class="submit-btn" id="btn-submit">Send Message</button>
+            </form>
+        </section>
+    </div>
+
+    <footer>
+        <div class="footer-links">
+            <a href="terms.html" id="link-terms">Terms of Service</a>
+            <a href="privacy.html" id="link-privacy">Privacy Policy</a>
+        </div>
+        <p id="footer-copy">&copy; 2026 Neon Math. All rights reserved.</p>
+    </footer>
+
+    <script>
+        let currentLang = 'en';
+
+        const translations = {
+            en: {
+                heroTitle: "SPEED PUZZLING SYSTEM",
+                heroDesc: "Test your mathematical wits in a fast-paced, glowing neon playground. Procedurally generated geometric, algebraic, and trigonometric puzzles that adapt to your skills.",
+                btnSupport: "Support & Contact",
+                btnGithub: "View GitHub",
+                feat1Title: "MAT-1 Curriculum",
+                feat1Desc: "Focuses on foundational math & basic geometry. Play with triangle angles, parallel transversals, supplementary angle splits, number grid matrices, and basic linear/parabolical function graphs.",
+                feat2Title: "MAT-2 Curriculum",
+                feat2Desc: "Dive into advanced math, trigonometry, and coordinate geometry. Test your limits with unit circle coordinates, right triangle ratios, algebraic identities, vectors, inscribed angles, and tangent lines.",
+                feat3Title: "Dynamic Difficulty (DDA)",
+                feat3Desc: "The puzzle engine dynamically scales question difficulty as your score grows. Progress from Easy to Expert challenges in a 60-second race where every correct answer saves you time.",
+                supportTitle: "Get in Touch",
+                supportDesc: "Have a question about Neon Math? Encountered an issue in the game? Feel free to contact us. We usually respond within 24 hours.",
+                labelName: "Your Name",
+                labelMessage: "Your Message",
+                btnSubmit: "Send Message",
+                linkTerms: "Terms of Service",
+                linkPrivacy: "Privacy Policy",
+                footerCopy: "© 2026 Neon Math. All rights reserved."
+            },
+            tr: {
+                heroTitle: "HIZLI BULMACA SİSTEMİ",
+                heroDesc: "Matematiksel zekanızı hızlı tempolu, parlayan neon bir oyun alanında test edin. Becerilerinize göre uyarlanan prosedürel olarak üretilmiş geometrik, cebirsel ve trigonometrik bulmacalar.",
+                btnSupport: "Destek & İletişim",
+                btnGithub: "GitHub Sayfası",
+                feat1Title: "MAT-1 Müfredatı",
+                feat1Desc: "Temel matematik ve temel geometriye odaklanır. Üçgen açıları, paralel doğrular, bütünler açılar, sayı matrisleri ve temel fonksiyon grafikleri ile oynayın.",
+                feat2Title: "MAT-2 Müfredatı",
+                feat2Desc: "İleri matematik, trigonometri ve koordinat geometrisine dalın. Birim çember koordinatları, dik üçgen oranları, trigonometrik özdeşlikler, vektörler, çevre açılar ve teğet doğrularla sınırlarınızı zorlayın.",
+                feat3Title: "Dinamik Zorluk (DDA)",
+                feat3Desc: "Bulmaca motoru, skorunuz arttıkça soru zorluğunu dinamik olarak ayarlar. Doğru cevapların süre kazandırdığı 60 saniyelik bir yarışta Kolay'dan Uzman'a doğru ilerleyin.",
+                supportTitle: "İletişime Geçin",
+                supportDesc: "Neon Math hakkında bir sorunuz mu var? Oyunda bir hata ile mi karşılaştınız? Bizimle iletişime geçebilirsiniz. Genellikle 24 saat içinde geri dönüş sağlıyoruz.",
+                labelName: "Adınız Soyadınız",
+                labelMessage: "Mesajınız",
+                btnSubmit: "Mesajı Gönder",
+                linkTerms: "Kullanım Koşulları",
+                linkPrivacy: "Gizlilik Sözleşmesi",
+                footerCopy: "© 2026 Neon Math. Tüm hakları saklıdır."
+            }
+        };
+
+        function toggleLang() {
+            currentLang = currentLang === 'en' ? 'tr' : 'en';
+            applyTranslations();
+        }
+
+        function applyTranslations() {
+            const t = translations[currentLang];
+            document.getElementById('hero-title').innerText = t.heroTitle;
+            document.getElementById('hero-desc').innerText = t.heroDesc;
+            document.getElementById('btn-support').innerText = t.btnSupport;
+            document.getElementById('btn-github').innerText = t.btnGithub;
+            document.getElementById('feat1-title').innerText = t.feat1Title;
+            document.getElementById('feat1-desc').innerText = t.feat1Desc;
+            document.getElementById('feat2-title').innerText = t.feat2Title;
+            document.getElementById('feat2-desc').innerText = t.feat2Desc;
+            document.getElementById('feat3-title').innerText = t.feat3Title;
+            document.getElementById('feat3-desc').innerText = t.feat3Desc;
+            document.getElementById('support-title').innerText = t.supportTitle;
+            document.getElementById('support-desc').innerText = t.supportDesc;
+            document.getElementById('label-name').innerText = t.labelName;
+            document.getElementById('label-message').innerText = t.labelMessage;
+            document.getElementById('btn-submit').innerText = t.btnSubmit;
+            document.getElementById('link-terms').innerText = t.linkTerms;
+            document.getElementById('link-privacy').innerText = t.linkPrivacy;
+            document.getElementById('footer-copy').innerText = t.footerCopy;
+        }
+    </script>
+</body>
+</html>

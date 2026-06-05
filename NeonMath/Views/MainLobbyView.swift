@@ -128,6 +128,50 @@ public struct MainLobbyView: View {
                 
                 Spacer()
                 
+                // MARK: - Curriculum Selector Capsule
+                HStack(spacing: 0) {
+                    Button(action: {
+                        HapticFeedbackManager.shared.playSoftImpact()
+                        viewModel.updateCurriculumTrack(.mat1)
+                    }) {
+                        Text("MAT-1")
+                            .font(.system(size: 12, weight: .black))
+                            .tracking(1.5)
+                            .foregroundColor(viewModel.userProfile.selectedTrack == .mat1 ? .black : .white.opacity(0.6))
+                            .padding(.vertical, 10)
+                            .frame(maxWidth: .infinity)
+                            .background(
+                                RoundedRectangle(cornerRadius: 18)
+                                    .fill(viewModel.userProfile.selectedTrack == .mat1 ? Color.white : Color.clear)
+                            )
+                    }
+                    
+                    Button(action: {
+                        HapticFeedbackManager.shared.playSoftImpact()
+                        viewModel.updateCurriculumTrack(.mat2)
+                    }) {
+                        Text("MAT-2")
+                            .font(.system(size: 12, weight: .black))
+                            .tracking(1.5)
+                            .foregroundColor(viewModel.userProfile.selectedTrack == .mat2 ? .black : .white.opacity(0.6))
+                            .padding(.vertical, 10)
+                            .frame(maxWidth: .infinity)
+                            .background(
+                                RoundedRectangle(cornerRadius: 18)
+                                    .fill(viewModel.userProfile.selectedTrack == .mat2 ? Color.white : Color.clear)
+                            )
+                    }
+                }
+                .padding(3)
+                .background(Color.white.opacity(0.06))
+                .cornerRadius(21)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 21)
+                        .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                )
+                .padding(.horizontal, 48)
+                .padding(.bottom, 16)
+                
                 // Active Curriculum Badge Details
                 HStack(spacing: 6) {
                     Circle()
@@ -135,14 +179,24 @@ public struct MainLobbyView: View {
                         .frame(width: 6, height: 6)
                         .shadow(color: pilotRank.color, radius: 3)
                     
-                    Text(lang == .tr ? "GEOMETRİ • CEBİR • TRİGONOMETRİ AKTİF" : "GEOMETRY • ALGEBRA • TRIGONOMETRY ACTIVE")
-                        .font(.system(size: 9, weight: .bold))
-                        .foregroundColor(.white.opacity(0.3))
-                        .tracking(1.5)
-                        .minimumScaleFactor(0.7)
-                        .lineLimit(1)
+                    let track = viewModel.userProfile.selectedTrack
+                    if lang == .tr {
+                        Text(track == .mat1 ? "MAT-1 MÜFREDATI AKTİF • GEOMETRİ & CEBİR" : "MAT-2 MÜFREDATI AKTİF • TRİGONOMETRİ & VEKTÖR")
+                            .font(.system(size: 9, weight: .bold))
+                            .foregroundColor(.white.opacity(0.3))
+                            .tracking(1.5)
+                            .minimumScaleFactor(0.7)
+                            .lineLimit(1)
+                    } else {
+                        Text(track == .mat1 ? "MAT-1 CURRICULUM ACTIVE • GEOMETRY & ALGEBRA" : "MAT-2 CURRICULUM ACTIVE • TRIGONOMETRY & VECTORS")
+                            .font(.system(size: 9, weight: .bold))
+                            .foregroundColor(.white.opacity(0.3))
+                            .tracking(1.5)
+                            .minimumScaleFactor(0.7)
+                            .lineLimit(1)
+                    }
                 }
-                .padding(.bottom, 28)
+                .padding(.bottom, 24)
                 .padding(.horizontal, 24)
                 
                 // MARK: - Premium Play Button (Nike Athletics Bold CTA Style)
@@ -281,7 +335,7 @@ struct SettingsView: View {
                         .foregroundColor(.white.opacity(0.4))
                         .tracking(1.0)
                     ) {
-                        Link(destination: URL(string: "https://github.com/movlanovbahtiyar-spec/NeonMath/blob/main/terms.html")!) {
+                        Link(destination: URL(string: "https://movlanovbahtiyar-spec.github.io/NeonMath/terms.html")!) {
                             HStack {
                                 Text(lang == .tr ? "Kullanım Koşulları" : "Terms of Service")
                                     .font(.system(size: 15, weight: .semibold))
@@ -293,7 +347,7 @@ struct SettingsView: View {
                         }
                         .listRowBackground(Color.white.opacity(0.03))
                         
-                        Link(destination: URL(string: "https://github.com/movlanovbahtiyar-spec/NeonMath/blob/main/privacy.html")!) {
+                        Link(destination: URL(string: "https://movlanovbahtiyar-spec.github.io/NeonMath/privacy.html")!) {
                             HStack {
                                 Text(lang == .tr ? "Gizlilik Sözleşmesi" : "Privacy Policy")
                                     .font(.system(size: 15, weight: .semibold))
