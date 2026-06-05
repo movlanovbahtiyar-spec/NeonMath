@@ -281,7 +281,7 @@ struct SettingsView: View {
                         .foregroundColor(.white.opacity(0.4))
                         .tracking(1.0)
                     ) {
-                        Link(destination: URL(string: "https://github.com/movlanovbahtiyar/NeonMath/blob/main/terms.html")!) {
+                        Link(destination: URL(string: "https://github.com/movlanovbahtiyar-spec/NeonMath/blob/main/terms.html")!) {
                             HStack {
                                 Text(lang == .tr ? "Kullanım Koşulları" : "Terms of Service")
                                     .font(.system(size: 15, weight: .semibold))
@@ -293,7 +293,7 @@ struct SettingsView: View {
                         }
                         .listRowBackground(Color.white.opacity(0.03))
                         
-                        Link(destination: URL(string: "https://github.com/movlanovbahtiyar/NeonMath/blob/main/privacy.html")!) {
+                        Link(destination: URL(string: "https://github.com/movlanovbahtiyar-spec/NeonMath/blob/main/privacy.html")!) {
                             HStack {
                                 Text(lang == .tr ? "Gizlilik Sözleşmesi" : "Privacy Policy")
                                     .font(.system(size: 15, weight: .semibold))
